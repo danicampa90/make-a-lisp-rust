@@ -1,11 +1,11 @@
 use string_builder::Builder;
 
-use crate::ast::{MalAtom, MalType};
-pub struct ASTPrinter {}
+use super::{MalAtom, MalType};
+pub struct MalTypePrinter {}
 
-impl ASTPrinter {
-    pub fn new() -> ASTPrinter {
-        ASTPrinter {}
+impl MalTypePrinter {
+    pub fn new() -> Self {
+        Self {}
     }
     pub fn ast_to_string(&self, ast: &MalType) -> String {
         let mut builder = Builder::new(128);

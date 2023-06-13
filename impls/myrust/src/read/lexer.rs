@@ -1,4 +1,4 @@
-use crate::input::{InputError, InputReader};
+use super::{InputError, InputReader};
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum LexToken {
@@ -59,7 +59,7 @@ impl Lexer {
                 Ok(ch) if ch.is_whitespace() || specials.contains(&ch) => {
                     return Ok(LexToken::Name(str))
                 }
-                Ok(ch) => str.push(reader.get_char()?),
+                Ok(_) => str.push(reader.get_char()?),
                 Err(InputError::RetriableError) => continue,
                 Err(err) => return Err(err.into()),
             }

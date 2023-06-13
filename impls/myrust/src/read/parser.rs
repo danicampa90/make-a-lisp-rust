@@ -1,5 +1,5 @@
-use crate::ast::{MalAtom, MalType};
-use crate::lexer::{LexToken, LexerIterator, LexingError};
+use super::{LexToken, LexerIterator, LexingError};
+use super::{MalAtom, MalType};
 use std::iter::Peekable;
 
 pub struct Parser<'a> {
@@ -28,7 +28,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn read_form(&mut self, eof_allowed: bool) -> Result<MalType, ParsingError> {
-        use crate::lexer::LexToken::*;
+        use super::LexToken::*;
 
         match self.peek_token() {
             Ok(tok) => match tok {
