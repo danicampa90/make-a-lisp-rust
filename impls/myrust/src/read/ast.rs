@@ -1,13 +1,11 @@
-pub enum MalAtom {
-    Name(String),
-    IntNumber(i64),
-    String(String),
-    /*
-    Bool(bool),
-    Null, */
-}
+use std::{fmt::Display, rc::Rc};
 
-pub enum MalType {
-    List(Vec<MalType>),
-    Atom(MalAtom),
+use crate::eval::EnvironmentEntry;
+
+pub enum AstNode {
+    List(Vec<AstNode>),
+    String(String),
+    Int(i64),
+    FunctionPtr(Rc<EnvironmentEntry>), // internal only: a function pointer, like a lambda. saved in a variable
+    UnresolvedSymbol(String), // only existing during parsing. Unresolved symbols get resolved into a function pointer during evaluation.
 }

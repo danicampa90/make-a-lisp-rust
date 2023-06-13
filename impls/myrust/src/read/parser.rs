@@ -1,5 +1,5 @@
+use super::AstNode;
 use super::{LexToken, LexerIterator, LexingError};
-use super::{MalAtom, MalType};
 use std::iter::Peekable;
 
 pub struct Parser<'a> {
@@ -27,14 +27,14 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn read_form(&mut self, eof_allowed: bool) -> Result<MalType, ParsingError> {
+    pub fn read_form(&mut self, eof_allowed: bool) -> Result<AstNode, ParsingError> {
         use super::LexToken::*;
 
         match self.peek_token() {
             Ok(tok) => match tok {
                 RoundParenOpen => {
                     self.get_token()?;
-                    Ok(MalType::List(
+                    Ok(AstNode::List(
                         self.read_form_list(LexToken::RoundParenClose)?,
                     ))
                 }
@@ -73,7 +73,7 @@ impl<'a> Parser<'a> {
         res.map_err(|err| err.into())
     }
 
-    fn read_form_list(&mut self, until: LexToken) -> Result<Vec<MalType>, ParsingError> {
+    fn read_form_list(&mut self, until: LexToken) -> Result<Vec<AstNode>, ParsingError> {
         let mut result = vec![];
         while self.peek_token()? != until {
             result.push(self.read_form(false)?)
@@ -83,16 +83,14 @@ impl<'a> Parser<'a> {
 
         Ok(result)
     }
-    fn read_atom(&mut self) -> Result<MalType, ParsingError> {
+    fn read_atom(&mut self) -> Result<AstNode, ParsingError> {
         match self.get_token()? {
-            LexToken::QuotedString(str) => Ok(MalType::Atom(MalAtom::String(str))),
+            LexToken::QuotedString(str) => Ok(AstNode::String(str)),
             LexToken::Name(name) => {
-                if name.chars().all(|ch| ch.is_ascii_digit()) {
-                    Ok(MalType::Atom(MalAtom::IntNumber(name.parse().map_err(
-                        |parse_err| ParsingError::NumberParsingError(parse_err),
-                    )?)))
+                if let Ok(num) = name.parse() {
+                    Ok(AstNode::Int(num))
                 } else {
-                    Ok(MalType::Atom(MalAtom::Name(name)))
+                    Ok(AstNode::UnresolvedSymbol(name))
                 }
             }
             unexpected => Err(ParsingError::UnexpectedToken(unexpected)),

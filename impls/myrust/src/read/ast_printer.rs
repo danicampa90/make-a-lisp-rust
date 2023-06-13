@@ -1,21 +1,23 @@
+use std::fmt::{Debug, Display};
+
 use string_builder::Builder;
 
-use super::{MalAtom, MalType};
+use super::AstNode;
 pub struct MalTypePrinter {}
 
 impl MalTypePrinter {
     pub fn new() -> Self {
         Self {}
     }
-    pub fn ast_to_string(&self, ast: &MalType) -> String {
+    pub fn ast_to_string(&self, ast: &AstNode) -> String {
         let mut builder = Builder::new(128);
         self.append_form(ast, &mut builder);
         builder.string().unwrap()
     }
 
-    fn append_form(&self, ast: &MalType, builder: &mut Builder) {
+    fn append_form(&self, ast: &AstNode, builder: &mut Builder) {
         match ast {
-            MalType::List(vec) => {
+            AstNode::List(vec) => {
                 builder.append("(");
                 let mut first_element = true;
                 for form in vec.iter() {
@@ -27,9 +29,10 @@ impl MalTypePrinter {
                 }
                 builder.append(")")
             }
-            MalType::Atom(MalAtom::IntNumber(num)) => builder.append(num.to_string()),
-            MalType::Atom(MalAtom::Name(id)) => builder.append(id.as_str()),
-            MalType::Atom(MalAtom::String(str)) => self.append_string_repr(str, builder),
+            AstNode::Int(num) => builder.append(num.to_string()),
+            AstNode::UnresolvedSymbol(id) => builder.append(id.as_str()),
+            AstNode::String(str) => self.append_string_repr(str, builder),
+            AstNode::FunctionPtr(fptr) => builder.append(fptr.to_string()),
         }
     }
     fn append_string_repr(&self, str: &str, builder: &mut Builder) {
@@ -44,5 +47,19 @@ impl MalTypePrinter {
             }
         }
         builder.append('"');
+    }
+}
+
+impl Display for AstNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ast_printer = MalTypePrinter::new();
+
+        write!(f, "{}", ast_printer.ast_to_string(self))
+    }
+}
+
+impl Debug for AstNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
     }
 }
