@@ -1,20 +1,18 @@
-use std::{
-    collections::VecDeque,
-    io::{self, Error, ErrorKind},
-};
+use std::collections::VecDeque;
 
-use rustyline::{
-    error::ReadlineError,
-    history::{FileHistory, MemHistory},
-    DefaultEditor, Editor,
-};
+use rustyline::{error::ReadlineError, history::FileHistory, DefaultEditor, Editor};
 
 pub struct InputReader {
+    // fields used by refill_buffer and read_char
     buffer: VecDeque<char>,
     end: bool,
     rustyline: Editor<(), FileHistory>,
+
+    // get_char / peek_char support
+    peeked_char: Option<char>,
 }
 
+#[derive(PartialEq, Debug, Clone)]
 pub enum InputError {
     RetriableError,
     NonRetriableError,
@@ -38,7 +36,7 @@ impl InputReader {
         }
     }
 
-    pub fn read_char(&mut self) -> Result<char, InputError> {
+    fn read_char(&mut self) -> Result<char, InputError> {
         if self.end {
             return Err(InputError::ExitIndication);
         }
@@ -59,11 +57,28 @@ impl InputReader {
         return Ok(result);
     }
 
+    pub fn peek_char(&mut self) -> Result<char, InputError> {
+        if self.peeked_char.is_none() {
+            self.peeked_char = Some(self.read_char()?);
+        }
+
+        Ok(self.peeked_char.unwrap())
+    }
+    pub fn get_char(&mut self) -> Result<char, InputError> {
+        if let Some(c) = self.peeked_char {
+            self.peeked_char = None;
+            Ok(c)
+        } else {
+            self.read_char()
+        }
+    }
+
     pub fn new() -> InputReader {
         return InputReader {
             buffer: VecDeque::new(),
             end: false,
             rustyline: DefaultEditor::new().unwrap(),
+            peeked_char: None,
         };
     }
 }
