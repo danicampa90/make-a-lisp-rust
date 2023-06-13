@@ -34,7 +34,7 @@ wasm_MODE = wasmtime
 # Implementation specific settings
 #
 
-IMPLS = ada ada.2 awk bash basic bbc-basic c c.2 chuck clojure coffee common-lisp cpp crystal cs d dart \
+IMPLS = myrust ada ada.2 awk bash basic bbc-basic c c.2 chuck clojure coffee common-lisp cpp crystal cs d dart \
 	elisp elixir elm erlang es6 factor fantom fennel forth fsharp go groovy gnu-smalltalk \
 	guile haskell haxe hy io janet java java-truffle js jq julia kotlin livescript logo lua make mal \
 	matlab miniMAL nasm nim objc objpascal ocaml perl perl6 php picolisp pike plpgsql \
@@ -154,7 +154,8 @@ mal_STEP_TO_PROG =           impls/mal/$($(1)).mal
 matlab_STEP_TO_PROG =        impls/matlab/$($(1)).m
 miniMAL_STEP_TO_PROG =       impls/miniMAL/$($(1)).json
 nasm_STEP_TO_PROG =          impls/nasm/$($(1))
-nim_STEP_TO_PROG =           impls/nim/$($(1))
+nim_STEP_TO_PROG =           impls/nim/$($(1))o
+myrust_STEP_TO_PROG =        impls/myrust/src/main.rs
 objc_STEP_TO_PROG =          impls/objc/$($(1))
 objpascal_STEP_TO_PROG =     impls/objpascal/$($(1))
 ocaml_STEP_TO_PROG =         impls/ocaml/$($(1))
