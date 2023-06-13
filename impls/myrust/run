@@ -1,2 +1,3 @@
 #!/bin/bash
-exec cargo run -- ${STEP:-stepA_mal} "${@}"
+cargo build --quiet 2> /dev/null
+exec ./target/debug/myrust ${STEP:-stepA_mal} "${@}"
