@@ -5,7 +5,7 @@ use crate::read::AstNode;
 use super::{Environment, EnvironmentEntry, EvalError, SharedEnvironment};
 
 pub fn new_base_environment() -> SharedEnvironment {
-    let mut env = Environment::new();
+    let mut env = Environment::new_root();
     env.add_entry_owned(EnvironmentEntry::new_native_function(
         "+".to_string(),
         |params, env| int_binary_operator(params, env, |a, b| (a + b)),
@@ -26,7 +26,8 @@ pub fn new_base_environment() -> SharedEnvironment {
         |params, env| int_binary_operator(params, env, |a, b| (a / b)),
     ));
 
-    Rc::new(RefCell::new(env))
+    let global = Environment::new_child(env.as_shared());
+    global.as_shared()
 }
 
 fn int_binary_operator(

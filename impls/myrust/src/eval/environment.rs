@@ -54,18 +54,33 @@ impl Display for EnvironmentEntry {
 
 pub struct Environment {
     shared_definitions: HashMap<String, Rc<EnvironmentEntry>>,
+    parent: Option<SharedEnvironment>,
 }
+
 impl Environment {
     pub fn lookup(&self, name: &String) -> Option<Rc<EnvironmentEntry>> {
-        self.shared_definitions.get(name).cloned()
+        match self.shared_definitions.get(name).cloned() {
+            Some(val) => Some(val),
+            None => match &self.parent {
+                Some(parent) => parent.clone().borrow().lookup(name),
+                None => None,
+            },
+        }
     }
-    pub fn new_shared() -> SharedEnvironment {
-        Rc::new(RefCell::new(Self::new()))
-    }
-    pub fn new() -> Environment {
+    pub fn new_root() -> Environment {
         Self {
             shared_definitions: HashMap::new(),
+            parent: None,
         }
+    }
+    pub fn new_child(parent: SharedEnvironment) -> Environment {
+        Self {
+            shared_definitions: HashMap::new(),
+            parent: Some(parent),
+        }
+    }
+    pub fn as_shared(self) -> SharedEnvironment {
+        Rc::new(RefCell::new(self))
     }
     pub fn add_entry(&mut self, entry: Rc<EnvironmentEntry>) {
         self.shared_definitions.insert(entry.name().clone(), entry);
