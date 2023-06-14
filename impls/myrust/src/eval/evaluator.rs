@@ -19,8 +19,8 @@ impl Evaluator {
             AstNode::Int(num) => AstNode::Int(num),
             AstNode::String(str) => AstNode::String(str),
             AstNode::UnresolvedSymbol(name) => env
-                .borrow_mut()
-                .lookup(&name)
+                .borrow()
+                .find(&name)
                 .ok_or(EvalError::SymbolNotFound(name))?
                 .to_ast_node(),
             AstNode::FunctionPtr(fptr) => AstNode::FunctionPtr(fptr),
@@ -43,7 +43,7 @@ impl Evaluator {
         if let AstNode::UnresolvedSymbol(name) = name {
             let definition = env
                 .borrow()
-                .lookup(&name)
+                .find(&name)
                 .ok_or_else(|| EvalError::SymbolNotFound(name.clone()))?;
 
             // evaluate the parameters in advance only if it's not a special form (or macro?)

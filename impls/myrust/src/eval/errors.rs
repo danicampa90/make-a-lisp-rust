@@ -9,7 +9,10 @@ pub enum EvalError {
 }
 
 impl EvalError {
-    pub fn custom_exception_string(s: &str) -> EvalError {
+    pub fn custom_exception_str<T>(s: T) -> EvalError
+    where
+        T: ToString,
+    {
         EvalError::CustomException(AstNode::String(s.to_string()))
     }
 }

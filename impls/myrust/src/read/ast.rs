@@ -1,7 +1,8 @@
-use std::{fmt::Display, rc::Rc};
+use std::{clone, fmt::Display, rc::Rc};
 
 use crate::eval::EnvironmentEntry;
 
+#[derive(Clone)]
 pub enum AstNode {
     List(Vec<AstNode>),
     String(String),

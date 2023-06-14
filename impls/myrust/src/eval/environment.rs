@@ -5,7 +5,7 @@ use crate::read::AstNode;
 
 type NativeFunction = fn(Vec<AstNode>, &SharedEnvironment) -> Result<AstNode, EvalError>;
 pub enum EnvironmentEntryValue {
-    AstNode(AstNode),
+    Value(AstNode),
     NativeFunction(NativeFunction),
 }
 
@@ -16,7 +16,10 @@ pub struct EnvironmentEntry {
 }
 impl EnvironmentEntry {
     pub fn to_ast_node(self: Rc<Self>) -> AstNode {
-        AstNode::FunctionPtr(self.clone())
+        match &self.value {
+            EnvironmentEntryValue::Value(node) => node.clone(),
+            EnvironmentEntryValue::NativeFunction(nf) => AstNode::FunctionPtr(self.clone()),
+        }
     }
     pub fn value(&self) -> &EnvironmentEntryValue {
         &self.value
@@ -41,6 +44,13 @@ impl EnvironmentEntry {
             value: EnvironmentEntryValue::NativeFunction(func),
         }
     }
+    pub fn new_ast_value(name: String, val: AstNode) -> Self {
+        Self {
+            name,
+            eval_parameters: true,
+            value: EnvironmentEntryValue::Value(val),
+        }
+    }
 }
 impl Display for EnvironmentEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -58,11 +68,11 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn lookup(&self, name: &String) -> Option<Rc<EnvironmentEntry>> {
+    pub fn find(&self, name: &String) -> Option<Rc<EnvironmentEntry>> {
         match self.shared_definitions.get(name).cloned() {
             Some(val) => Some(val),
             None => match &self.parent {
-                Some(parent) => parent.clone().borrow().lookup(name),
+                Some(parent) => parent.clone().borrow().find(name),
                 None => None,
             },
         }
@@ -82,11 +92,11 @@ impl Environment {
     pub fn as_shared(self) -> SharedEnvironment {
         Rc::new(RefCell::new(self))
     }
-    pub fn add_entry(&mut self, entry: Rc<EnvironmentEntry>) {
+    pub fn set(&mut self, entry: Rc<EnvironmentEntry>) {
         self.shared_definitions.insert(entry.name().clone(), entry);
     }
-    pub fn add_entry_owned(&mut self, entry: EnvironmentEntry) {
-        self.add_entry(Rc::new(entry))
+    pub fn set_owned(&mut self, entry: EnvironmentEntry) {
+        self.set(Rc::new(entry))
     }
 }
 
