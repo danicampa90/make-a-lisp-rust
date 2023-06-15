@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::eval::{EnvironmentEntry, SharedEnvironment};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum AstNode {
     List(Vec<AstNode>),
     String(String),

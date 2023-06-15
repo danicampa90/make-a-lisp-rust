@@ -3,11 +3,19 @@ use std::fmt::{Debug, Display};
 use string_builder::Builder;
 
 use super::AstNode;
-pub struct MalTypePrinter {}
+pub struct AstPrinter {
+    format: AstPrintFormat,
+}
 
-impl MalTypePrinter {
-    pub fn new() -> Self {
-        Self {}
+#[derive(PartialEq)]
+pub enum AstPrintFormat {
+    Readable,
+    Repr,
+}
+
+impl AstPrinter {
+    pub fn new(format: AstPrintFormat) -> Self {
+        Self { format }
     }
     pub fn ast_to_string(&self, ast: &AstNode) -> String {
         let mut builder = Builder::new(128);
@@ -31,7 +39,10 @@ impl MalTypePrinter {
             }
             AstNode::Int(num) => builder.append(num.to_string()),
             AstNode::UnresolvedSymbol(id) => builder.append(id.as_str()),
-            AstNode::String(str) => self.append_string_repr(str, builder),
+            AstNode::String(str) => match self.format {
+                AstPrintFormat::Readable => builder.append(str.as_str()),
+                AstPrintFormat::Repr => self.append_string_repr(str, builder),
+            },
             AstNode::Bool(true) => builder.append("true"),
             AstNode::Bool(false) => builder.append("false"),
             AstNode::Nil => builder.append("nil"),
@@ -56,7 +67,7 @@ impl MalTypePrinter {
 
 impl Display for AstNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let ast_printer = MalTypePrinter::new();
+        let ast_printer = AstPrinter::new(AstPrintFormat::Repr);
 
         write!(f, "{}", ast_printer.ast_to_string(self))
     }

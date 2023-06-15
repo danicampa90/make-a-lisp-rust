@@ -1,15 +1,16 @@
 use std::collections::VecDeque;
 
-use rustyline::{error::ReadlineError, history::FileHistory, DefaultEditor, Editor};
+use super::InputSource;
 
 pub struct InputReader {
     // fields used by refill_buffer and read_char
     buffer: VecDeque<char>,
     end: bool,
-    rustyline: Editor<(), FileHistory>,
 
     // get_char / peek_char support
     peeked_char: Option<char>,
+
+    input_source: Box<dyn InputSource>,
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -21,18 +22,12 @@ pub enum InputError {
 
 impl InputReader {
     fn refill_buffer(&mut self) -> Result<(), InputError> {
-        let read_result = self.rustyline.readline("user> ");
-
-        match read_result {
+        match self.input_source.read() {
             Ok(str) => {
-                self.buffer = str.chars().collect();
-                self.buffer.push_back('\n');
+                self.buffer.append(&mut str.chars().collect());
                 Ok(())
             }
-            Err(ReadlineError::Eof) => Err(InputError::ExitIndication),
-            Err(ReadlineError::Interrupted) => Err(InputError::ExitIndication),
-            Err(ReadlineError::WindowResized) => Err(InputError::RetriableError),
-            Err(_) => Err(InputError::NonRetriableError),
+            Err(e) => Err(e),
         }
     }
 
@@ -73,12 +68,12 @@ impl InputReader {
         }
     }
 
-    pub fn new() -> InputReader {
+    pub fn new(input_source: Box<dyn InputSource>) -> InputReader {
         return InputReader {
             buffer: VecDeque::new(),
             end: false,
-            rustyline: DefaultEditor::new().unwrap(),
             peeked_char: None,
+            input_source,
         };
     }
 }

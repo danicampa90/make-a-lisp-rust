@@ -1,14 +1,17 @@
-use std::{cell::RefCell, collections::HashMap, fmt::Display, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, fmt::Display, ops::Deref, rc::Rc};
 
 use super::EvalError;
 use crate::read::AstNode;
 
 type NativeFunction = fn(Vec<AstNode>, &SharedEnvironment) -> Result<AstNode, EvalError>;
+
+#[derive(PartialEq)]
 pub enum EnvironmentEntryValue {
     Value(AstNode),
     NativeFunction(NativeFunction),
 }
 
+#[derive(PartialEq)]
 pub struct EnvironmentEntry {
     name: String,
     eval_parameters: bool,
@@ -91,7 +94,7 @@ impl Environment {
         }
     }
     pub fn as_shared(self) -> SharedEnvironment {
-        Rc::new(RefCell::new(self))
+        SharedEnvironment(Rc::new(RefCell::new(self)))
     }
     pub fn set(&mut self, entry: Rc<EnvironmentEntry>) {
         self.shared_definitions.insert(entry.name().clone(), entry);
@@ -101,4 +104,20 @@ impl Environment {
     }
 }
 
-pub type SharedEnvironment = Rc<RefCell<Environment>>;
+#[derive(Clone)]
+pub struct SharedEnvironment(Rc<RefCell<Environment>>);
+
+impl Deref for SharedEnvironment {
+    type Target = Rc<RefCell<Environment>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+// comparison of environments is a pointers comparison
+impl PartialEq for SharedEnvironment {
+    fn eq(&self, other: &Self) -> bool {
+        other.as_ptr() == self.as_ptr()
+    }
+}
