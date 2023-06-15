@@ -32,7 +32,11 @@ impl MalTypePrinter {
             AstNode::Int(num) => builder.append(num.to_string()),
             AstNode::UnresolvedSymbol(id) => builder.append(id.as_str()),
             AstNode::String(str) => self.append_string_repr(str, builder),
+            AstNode::Bool(true) => builder.append("true"),
+            AstNode::Bool(false) => builder.append("false"),
+            AstNode::Nil => builder.append("nil"),
             AstNode::FunctionPtr(fptr) => builder.append(fptr.to_string()),
+            AstNode::Lambda(_) => builder.append("#<function>"),
         }
     }
     fn append_string_repr(&self, str: &str, builder: &mut Builder) {

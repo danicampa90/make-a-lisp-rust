@@ -18,7 +18,7 @@ impl EnvironmentEntry {
     pub fn to_ast_node(self: Rc<Self>) -> AstNode {
         match &self.value {
             EnvironmentEntryValue::Value(node) => node.clone(),
-            EnvironmentEntryValue::NativeFunction(nf) => AstNode::FunctionPtr(self.clone()),
+            EnvironmentEntryValue::NativeFunction(_) => AstNode::FunctionPtr(self.clone()),
         }
     }
     pub fn value(&self) -> &EnvironmentEntryValue {
@@ -52,6 +52,7 @@ impl EnvironmentEntry {
         }
     }
 }
+
 impl Display for EnvironmentEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
