@@ -4,7 +4,6 @@ use crate::read::AstNode;
 pub enum EvalError {
     SymbolNotFound(String),
     InvalidFunctionCallNodeType(AstNode),
-    NotACallableFunction(String),
     CustomException(AstNode),
 }
 

@@ -1,10 +1,6 @@
-use std::f32::consts::E;
-
 use crate::read::AstNode;
 
-use super::{
-    environment, Environment, EnvironmentEntry, EnvironmentEntryValue, EvalError, SharedEnvironment,
-};
+use super::{Environment, EnvironmentEntry, EnvironmentEntryValue, EvalError, SharedEnvironment};
 
 // ////////////// Evaluator ////////////// //
 pub struct Evaluator {}
@@ -12,7 +8,7 @@ pub struct Evaluator {}
 impl Evaluator {
     fn eval_ast(&self, ast: AstNode, env: &SharedEnvironment) -> Result<AstNode, EvalError> {
         Ok(match ast {
-            AstNode::List(t) => unreachable!(),
+            AstNode::List(_) => unreachable!(),
             AstNode::Int(num) => AstNode::Int(num),
             AstNode::String(str) => AstNode::String(str),
             AstNode::Bool(b) => AstNode::Bool(b),

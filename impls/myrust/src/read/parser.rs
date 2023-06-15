@@ -10,7 +10,6 @@ pub struct Parser<'a> {
 pub enum ParsingError {
     LexingError(LexingError),
     UnexpectedToken(LexToken),
-    NumberParsingError(std::num::ParseIntError),
     UnexpectedEOF,
     Eof,
 }

@@ -1,4 +1,4 @@
-use std::{clone, fmt::Display, rc::Rc};
+use std::rc::Rc;
 
 use crate::eval::{EnvironmentEntry, SharedEnvironment};
 

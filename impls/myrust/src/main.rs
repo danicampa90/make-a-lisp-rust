@@ -1,6 +1,6 @@
 mod eval;
 mod read;
-use eval::{new_base_environment, Environment, Evaluator};
+use eval::{new_base_environment, Evaluator};
 use read::{InputReader, Lexer, MalTypePrinter, Parser, ParsingError};
 
 fn main() {
