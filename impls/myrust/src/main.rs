@@ -37,8 +37,13 @@ fn main() {
     let lexer = Lexer::create_lexer_iterator(&mut input);
     let mut parser = Parser::new(lexer);
 
-    let eval_result = run(&mut parser, &evaluator, &environment, Some(&ast_printer));
-    print_eval_result_error(eval_result)
+    loop {
+        let eval_result = run(&mut parser, &evaluator, &environment, Some(&ast_printer));
+        if eval_result.is_ok() {
+            return;
+        }
+        print_eval_result_error(eval_result);
+    }
 }
 
 fn run(
