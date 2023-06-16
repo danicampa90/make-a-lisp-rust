@@ -76,7 +76,6 @@ impl Evaluator {
                     // cloning values here is also not super-great, but they should never be "big" anyway (maybe only for lists???)
                     let value = evaluator.eval(params[i].clone(), env)?;
                     let name = lambda_params[i].clone();
-                    println!("set {} = {:?}", name, value);
                     new_env.set_owned(EnvironmentEntry::new_ast_value(name, value))
                 }
 

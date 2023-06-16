@@ -8,11 +8,6 @@ pub fn new_base_environment() -> SharedEnvironment {
     let mut env = Environment::new_root();
     // Step 2: math
     env.set_owned(EnvironmentEntry::new_native_function(
-        "+".to_string(),
-        |params, env| int_binary_operator(params, env, |a, b| (a + b)),
-    ));
-
-    env.set_owned(EnvironmentEntry::new_native_function(
         "-".to_string(),
         |params, env| int_binary_operator(params, env, |a, b| (a - b)),
     ));
