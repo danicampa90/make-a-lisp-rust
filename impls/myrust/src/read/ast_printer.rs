@@ -7,7 +7,7 @@ pub struct AstPrinter {
     format: AstPrintFormat,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum AstPrintFormat {
     Readable,
     Repr,

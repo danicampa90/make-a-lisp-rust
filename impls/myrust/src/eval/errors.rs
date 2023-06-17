@@ -4,7 +4,16 @@ use crate::read::AstNode;
 pub enum EvalError {
     SymbolNotFound(String),
     InvalidFunctionCallNodeType(AstNode),
-    CustomException(AstNode),
+    ParameterCountError {
+        expected_min: Option<usize>,
+        expected_max: Option<usize>,
+        provided: usize,
+    },
+    TypeError {
+        expected: String,
+        got: AstNode,
+    },
+    CustomException(String),
 }
 
 impl EvalError {
@@ -12,6 +21,6 @@ impl EvalError {
     where
         T: ToString,
     {
-        EvalError::CustomException(AstNode::String(s.to_string()))
+        EvalError::CustomException(s.to_string())
     }
 }

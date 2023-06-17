@@ -1,20 +1,28 @@
 use std::{cell::RefCell, collections::HashMap, fmt::Display, ops::Deref, rc::Rc};
 
-use super::EvalError;
+use super::{EvalError, NativeFunction};
 use crate::read::AstNode;
 
-type NativeFunction = fn(Vec<AstNode>, &SharedEnvironment) -> Result<AstNode, EvalError>;
-
-#[derive(PartialEq)]
 pub enum EnvironmentEntryValue {
     Value(AstNode),
-    NativeFunction(NativeFunction),
+    NativeFunction(Rc<dyn NativeFunction>),
+}
+
+impl PartialEq for EnvironmentEntryValue {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Value(l0), Self::Value(r0)) => l0 == r0,
+            (Self::NativeFunction(l0), Self::NativeFunction(r0)) => {
+                Rc::as_ptr(l0) == Rc::as_ptr(r0)
+            }
+            _ => false,
+        }
+    }
 }
 
 #[derive(PartialEq)]
 pub struct EnvironmentEntry {
     name: String,
-    eval_parameters: bool,
     value: EnvironmentEntryValue,
 }
 impl EnvironmentEntry {
@@ -27,30 +35,18 @@ impl EnvironmentEntry {
     pub fn value(&self) -> &EnvironmentEntryValue {
         &self.value
     }
-    pub fn eval_parameters(&self) -> bool {
-        self.eval_parameters
-    }
     pub fn name(&self) -> &String {
         &self.name
     }
-    pub fn new_native_function(name: String, func: NativeFunction) -> Self {
+    pub fn new_native(func: Rc<dyn NativeFunction>) -> Self {
         Self {
-            name,
-            eval_parameters: true,
-            value: EnvironmentEntryValue::NativeFunction(func),
-        }
-    }
-    pub fn new_special_atom(name: String, func: NativeFunction) -> Self {
-        Self {
-            name,
-            eval_parameters: false,
+            name: func.name(),
             value: EnvironmentEntryValue::NativeFunction(func),
         }
     }
     pub fn new_ast_value(name: String, val: AstNode) -> Self {
         Self {
             name,
-            eval_parameters: true,
             value: EnvironmentEntryValue::Value(val),
         }
     }
@@ -58,11 +54,10 @@ impl EnvironmentEntry {
 
 impl Display for EnvironmentEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "(fn_ptr {} - eval_params:{})",
-            self.name, self.eval_parameters
-        )
+        match &self.value {
+            EnvironmentEntryValue::Value(ast) => write!(f, "<variable {} = {:?}>", self.name, ast),
+            EnvironmentEntryValue::NativeFunction(_) => write!(f, "<function {}>", self.name),
+        }
     }
 }
 

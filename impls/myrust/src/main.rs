@@ -25,7 +25,7 @@ fn main() {
     let mut input = InputReader::new(Box::new(StringInputSource::new(startup_code)));
     let lexer = Lexer::create_lexer_iterator(&mut input);
     let mut parser = Parser::new(lexer);
-    let eval_result = run(&mut parser, &evaluator, &environment, None);
+    let eval_result = run(&mut parser, &evaluator, environment.clone(), None);
     if eval_result.is_err() {
         println!("CRITICAL ERROR! Cannot load the base environment file 'env.lisp' due to the following error:");
         print_eval_result_error(eval_result);
@@ -38,7 +38,12 @@ fn main() {
     let mut parser = Parser::new(lexer);
 
     loop {
-        let eval_result = run(&mut parser, &evaluator, &environment, Some(&ast_printer));
+        let eval_result = run(
+            &mut parser,
+            &evaluator,
+            environment.clone(),
+            Some(&ast_printer),
+        );
         if eval_result.is_ok() {
             return;
         }
@@ -49,13 +54,13 @@ fn main() {
 fn run(
     parser: &mut Parser,
     evaluator: &Evaluator,
-    environment: &SharedEnvironment,
+    environment: SharedEnvironment,
     printer: Option<&AstPrinter>,
 ) -> Result<(), EvalError> {
     loop {
         match parser.read_form(true) {
             Ok(ast) => {
-                let eval_result = &evaluator.eval(ast, environment)?;
+                let eval_result = &evaluator.eval(ast, environment.clone())?;
                 if let Some(printer) = printer {
                     println!("{}", printer.ast_to_string(eval_result))
                 }
