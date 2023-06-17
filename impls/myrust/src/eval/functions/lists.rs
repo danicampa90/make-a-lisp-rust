@@ -5,7 +5,13 @@ use crate::read::AstNode;
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
 pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
-    vec![Rc::new(ListFn), Rc::new(IsListFn), Rc::new(CountFn)]
+    vec![
+        Rc::new(ListFn),
+        Rc::new(IsListFn),
+        Rc::new(CountFn),
+        Rc::new(ConsFn),
+        Rc::new(ConcatFn),
+    ]
 }
 
 struct ListFn;
@@ -64,5 +70,52 @@ impl NativeFunction for CountFn {
                 .map(|l| l.len())
                 .unwrap_or(0) as i64,
         )))
+    }
+}
+
+struct ConsFn;
+impl NativeFunction for ConsFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "cons".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(2), Some(2))?;
+        let mut ast = data.destructure().0;
+        let value = ast.remove(0);
+        let mut list = ast.remove(0).try_unwrap_list_or_vector()?;
+        list.insert(0, value);
+
+        Ok(FunctionCallResultSuccess::Value(AstNode::List(list)))
+    }
+}
+
+struct ConcatFn;
+impl NativeFunction for ConcatFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "concat".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        let mut ast = data.destructure().0;
+        if ast.len() == 0 {
+            return Ok(FunctionCallResultSuccess::Value(AstNode::List(vec![])));
+        }
+
+        let mut list = ast.remove(0).try_unwrap_list_or_vector()?;
+        while ast.len() > 0 {
+            let mut to_append = ast.remove(0).try_unwrap_list_or_vector()?;
+            list.append(&mut to_append);
+        }
+
+        Ok(FunctionCallResultSuccess::Value(AstNode::List(list)))
     }
 }
