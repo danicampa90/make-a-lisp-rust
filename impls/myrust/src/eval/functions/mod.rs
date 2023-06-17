@@ -1,5 +1,6 @@
 mod native_function;
 
+mod atom;
 mod booleans;
 mod control_flow;
 mod debugging;
@@ -27,6 +28,7 @@ pub fn global_functions() -> Vec<Rc<dyn NativeFunction>> {
     fns.append(&mut eval::functions());
     fns.append(&mut files::functions());
     fns.append(&mut debugging::functions());
+    fns.append(&mut atom::functions());
 
     return fns;
 }

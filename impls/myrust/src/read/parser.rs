@@ -1,7 +1,6 @@
 use super::AstNode;
 use super::{LexToken, LexerIterator, LexingError};
 use std::collections::HashMap;
-use std::hash::Hash;
 use std::iter::Peekable;
 
 pub struct Parser<'a> {

@@ -63,7 +63,7 @@ impl AstPrinter {
             AstNode::Atom(atom) => {
                 builder.append("(atom ");
                 self.append_form(&(*atom.borrow()), builder);
-                builder.append(" )");
+                builder.append(")");
             }
             AstNode::HashMap(hm) => {
                 builder.append("{");
