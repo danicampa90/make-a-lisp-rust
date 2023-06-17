@@ -43,6 +43,18 @@ impl AstNode {
             }),
         }
     }
+
+    pub fn try_unwrap_list_or_vector(self) -> Result<Vec<AstNode>, EvalError> {
+        match self {
+            AstNode::List(i) => Ok(i),
+            AstNode::Vector(i) => Ok(i),
+            v => Err(EvalError::TypeError {
+                expected: "List or Vector".to_string(),
+                got: v,
+            }),
+        }
+    }
+
     pub fn try_unwrap_vector(self) -> Result<Vec<AstNode>, EvalError> {
         match self {
             AstNode::Vector(i) => Ok(i),

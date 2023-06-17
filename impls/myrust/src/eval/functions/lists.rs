@@ -60,7 +60,7 @@ impl NativeFunction for CountFn {
             data.destructure()
                 .0
                 .remove(0)
-                .try_unwrap_list()
+                .try_unwrap_list_or_vector()
                 .map(|l| l.len())
                 .unwrap_or(0) as i64,
         )))

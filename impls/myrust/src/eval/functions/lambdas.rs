@@ -23,7 +23,7 @@ impl NativeFunction for FnStar {
 
         let (mut params, env) = data.destructure();
 
-        let lambda_params = params.remove(0).try_unwrap_list()?;
+        let lambda_params = params.remove(0).try_unwrap_list_or_vector()?;
         let lambda_body = params.remove(0);
 
         let mut params_as_strings = vec![];

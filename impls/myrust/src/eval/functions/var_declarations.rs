@@ -49,7 +49,7 @@ impl NativeFunction for LetStar {
         let (mut params, env) = data.destructure();
 
         // get the binding list and do error checking there
-        let mut bindings = params.remove(0).try_unwrap_list()?;
+        let mut bindings = params.remove(0).try_unwrap_list_or_vector()?;
 
         if bindings.len() % 2 != 0 {
             return Err(EvalError::custom_exception_str(
