@@ -2,6 +2,7 @@ mod native_function;
 
 mod booleans;
 mod control_flow;
+mod eval;
 mod lambdas;
 mod lists;
 mod math;
@@ -21,6 +22,7 @@ pub fn global_functions() -> Vec<Rc<dyn NativeFunction>> {
     fns.append(&mut printing::functions());
     fns.append(&mut lists::functions());
     fns.append(&mut booleans::functions());
+    fns.append(&mut eval::functions());
 
     return fns;
 }
