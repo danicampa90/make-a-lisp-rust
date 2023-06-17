@@ -20,6 +20,7 @@ pub enum AstNode {
     UnresolvedSymbol(String), // only existing during parsing. Unresolved symbols get resolved into a function pointer during evaluation.
 }
 
+#[allow(dead_code)]
 impl AstNode {
     pub fn try_unwrap_int(self) -> Result<i64, EvalError> {
         match self {

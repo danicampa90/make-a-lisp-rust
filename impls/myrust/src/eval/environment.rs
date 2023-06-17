@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, fmt::Display, ops::Deref, rc::Rc};
 
-use super::{EvalError, NativeFunction};
+use super::NativeFunction;
 use crate::read::AstNode;
 
 pub enum EnvironmentEntryValue {

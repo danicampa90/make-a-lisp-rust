@@ -1,9 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    eval::{Environment, EnvironmentEntry, EvalError},
-    read::AstNode,
-};
+use crate::eval::{Environment, EnvironmentEntry, EvalError};
 
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 

@@ -1,6 +1,6 @@
 mod eval;
 mod read;
-use eval::{new_base_environment, Environment, EvalError, Evaluator, SharedEnvironment};
+use eval::{new_base_environment, EvalError, Evaluator, SharedEnvironment};
 use read::{
     AstPrintFormat, AstPrinter, InputReader, Lexer, Parser, ParsingError, REPLTerminalInputSource,
     StringInputSource,

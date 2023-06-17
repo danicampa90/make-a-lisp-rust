@@ -36,9 +36,6 @@ impl FunctionCallData {
     pub fn params(&self) -> &Vec<AstNode> {
         &self.call_context.as_ref().unwrap().0
     }
-    pub fn environment(&self) -> &SharedEnvironment {
-        &self.call_context.as_ref().unwrap().1
-    }
     pub fn destructure(&mut self) -> (Vec<AstNode>, SharedEnvironment) {
         self.call_context.take().unwrap()
     }

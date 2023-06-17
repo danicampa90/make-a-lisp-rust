@@ -1,8 +1,8 @@
 use crate::read::AstNode;
 
 use super::{
-    Environment, EnvironmentEntry, EnvironmentEntryValue, EvalError, FunctionCallData,
-    FunctionCallResult, FunctionCallResultSuccess, SharedEnvironment, TailCallData,
+    Environment, EnvironmentEntry, EnvironmentEntryValue, EvalError, FunctionCallResult,
+    FunctionCallResultSuccess, SharedEnvironment,
 };
 
 // ////////////// Evaluator ////////////// //
@@ -51,7 +51,7 @@ impl Evaluator {
     fn eval_funcall(
         &self,
         func: AstNode,
-        mut params: Vec<AstNode>,
+        params: Vec<AstNode>,
         env: SharedEnvironment,
     ) -> FunctionCallResult {
         let evaluator = Evaluator::new();

@@ -73,7 +73,7 @@ impl NativeFunction for PrintFunction {
 
         let printer = AstPrinter::new(self.format);
 
-        let (mut params, env) = data.destructure();
+        let (params, _env) = data.destructure();
 
         for ast in params.into_iter() {
             let str = printer.ast_to_string(&ast);

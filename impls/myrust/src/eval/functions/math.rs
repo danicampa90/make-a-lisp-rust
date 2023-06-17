@@ -37,7 +37,7 @@ impl NativeFunction for MathBinaryOp {
 
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
         data.check_parameters_count_range(Some(2), Some(2))?;
-        let (mut ast, env) = data.destructure();
+        let (mut ast, _env) = data.destructure();
         let a = ast.remove(0).try_unwrap_int()?;
         let b = ast.remove(0).try_unwrap_int()?;
         let result = match self {

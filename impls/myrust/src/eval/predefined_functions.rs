@@ -1,11 +1,6 @@
-use std::rc::Rc;
+use crate::read::AstNode;
 
-use crate::read::{AstNode, AstPrintFormat, AstPrinter};
-
-use super::{
-    evaluator, Environment, EnvironmentEntry, EvalError, Evaluator, NativeFunction,
-    SharedEnvironment,
-};
+use super::{Environment, EnvironmentEntry, SharedEnvironment};
 
 pub fn new_base_environment() -> SharedEnvironment {
     let mut env = Environment::new_root();

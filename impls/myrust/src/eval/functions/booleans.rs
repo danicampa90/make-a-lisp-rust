@@ -21,7 +21,7 @@ impl NativeFunction for EqualOp {
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
         data.check_parameters_count_range(Some(2), Some(2))?;
 
-        let (mut params, env) = data.destructure();
+        let (mut params, _env) = data.destructure();
 
         let a = params.remove(0);
         let b = params.remove(0);
@@ -43,7 +43,7 @@ impl NativeFunction for LessThanOp {
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
         data.check_parameters_count_range(Some(2), Some(2))?;
 
-        let (mut params, env) = data.destructure();
+        let (mut params, _env) = data.destructure();
 
         let a = params.remove(0).try_unwrap_int()?;
         let b = params.remove(0).try_unwrap_int()?;
@@ -65,7 +65,7 @@ impl NativeFunction for NandOp {
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
         data.check_parameters_count_range(Some(2), Some(2))?;
 
-        let (mut params, env) = data.destructure();
+        let (mut params, _env) = data.destructure();
 
         let a = params.remove(0).try_unwrap_bool()?;
         let b = params.remove(0).try_unwrap_bool()?;

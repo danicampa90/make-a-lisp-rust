@@ -36,7 +36,7 @@ impl NativeFunction for IsListFn {
     }
 
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
-        data.check_parameters_count_range(Some(1), Some(1));
+        data.check_parameters_count_range(Some(1), Some(1))?;
 
         Ok(FunctionCallResultSuccess::Value(AstNode::Bool(
             data.destructure().0.remove(0).try_unwrap_list().is_ok(),
@@ -54,7 +54,7 @@ impl NativeFunction for CountFn {
     }
 
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
-        data.check_parameters_count_range(Some(1), Some(1));
+        data.check_parameters_count_range(Some(1), Some(1))?;
 
         Ok(FunctionCallResultSuccess::Value(AstNode::Int(
             data.destructure()
