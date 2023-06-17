@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display};
 
 use string_builder::Builder;
 
-use super::AstNode;
+use super::{AstNode, Lexer};
 pub struct AstPrinter {
     format: AstPrintFormat,
 }
@@ -37,6 +37,18 @@ impl AstPrinter {
                 }
                 builder.append(")")
             }
+            AstNode::Vector(vec) => {
+                builder.append("[");
+                let mut first_element = true;
+                for form in vec.iter() {
+                    if !first_element {
+                        builder.append(" ");
+                    }
+                    self.append_form(form, builder);
+                    first_element = false;
+                }
+                builder.append("]")
+            }
             AstNode::Int(num) => builder.append(num.to_string()),
             AstNode::UnresolvedSymbol(id) => builder.append(id.as_str()),
             AstNode::String(str) => match self.format {
@@ -48,9 +60,32 @@ impl AstPrinter {
             AstNode::Nil => builder.append("nil"),
             AstNode::FunctionPtr(fptr) => builder.append(fptr.to_string()),
             AstNode::Lambda(_) => builder.append("#<function>"),
+            AstNode::Atom(atom) => {
+                builder.append("(atom ");
+                self.append_form(&(*atom.borrow()), builder);
+                builder.append(" )");
+            }
+            AstNode::HashMap(hm) => {
+                builder.append("{");
+                let mut first_element = true;
+                for item in hm {
+                    if !first_element {
+                        builder.append(" ");
+                    }
+                    self.append_form(&AstNode::String(item.0.clone()), builder);
+                    builder.append(" ");
+                    self.append_form(item.1, builder);
+                    first_element = false;
+                }
+                builder.append("}")
+            }
         }
     }
     fn append_string_repr(&self, str: &str, builder: &mut Builder) {
+        if str.starts_with(Lexer::KEYWORD_PREFIX) {
+            builder.append(&str[Lexer::KEYWORD_PREFIX.len()..]);
+            return;
+        }
         builder.append('"');
         for ch in str.chars() {
             match ch {

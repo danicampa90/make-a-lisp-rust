@@ -1,10 +1,13 @@
-use std::rc::Rc;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::eval::{EnvironmentEntry, EvalError, SharedEnvironment};
 
 #[derive(Clone, PartialEq)]
 pub enum AstNode {
     List(Vec<AstNode>),
+    Vector(Vec<AstNode>),
+    HashMap(HashMap<String, AstNode>),
+    Atom(Rc<RefCell<AstNode>>),
     String(String),
     Int(i64),
     Bool(bool),
@@ -36,6 +39,33 @@ impl AstNode {
             AstNode::List(i) => Ok(i),
             v => Err(EvalError::TypeError {
                 expected: "List".to_string(),
+                got: v,
+            }),
+        }
+    }
+    pub fn try_unwrap_vector(self) -> Result<Vec<AstNode>, EvalError> {
+        match self {
+            AstNode::Vector(i) => Ok(i),
+            v => Err(EvalError::TypeError {
+                expected: "Vector".to_string(),
+                got: v,
+            }),
+        }
+    }
+    pub fn try_unwrap_hashmap(self) -> Result<HashMap<String, AstNode>, EvalError> {
+        match self {
+            AstNode::HashMap(i) => Ok(i),
+            v => Err(EvalError::TypeError {
+                expected: "Vector".to_string(),
+                got: v,
+            }),
+        }
+    }
+    pub fn try_unwrap_atom(self) -> Result<Rc<RefCell<AstNode>>, EvalError> {
+        match self {
+            AstNode::Atom(i) => Ok(i),
+            v => Err(EvalError::TypeError {
+                expected: "Atom".to_string(),
                 got: v,
             }),
         }

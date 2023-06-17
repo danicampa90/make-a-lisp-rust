@@ -27,6 +27,8 @@ pub enum LexingError {
 pub struct Lexer {}
 
 impl Lexer {
+    pub const KEYWORD_PREFIX: &str = " :KEYWORD:";
+
     fn read_string_token(reader: &mut InputReader) -> Result<LexToken, LexingError> {
         let mut str = String::new();
         loop {
@@ -58,6 +60,22 @@ impl Lexer {
             match reader.peek_char() {
                 Ok(ch) if ch.is_whitespace() || specials.contains(&ch) => {
                     return Ok(LexToken::Name(str))
+                }
+                Ok(_) => str.push(reader.get_char()?),
+                Err(InputError::RetriableError) => continue,
+                Err(InputError::ExitIndication) if str.len() > 0 => return Ok(LexToken::Name(str)),
+                Err(err) => return Err(err.into()),
+            }
+        }
+    }
+    fn read_keyword(reader: &mut InputReader) -> Result<LexToken, LexingError> {
+        let mut str = Self::KEYWORD_PREFIX.to_string() + ":";
+        let specials = vec!['(', ')', '[', ']', '{', '}', ','];
+
+        loop {
+            match reader.peek_char() {
+                Ok(ch) if ch.is_whitespace() || specials.contains(&ch) => {
+                    return Ok(LexToken::QuotedString(str))
                 }
                 Ok(_) => str.push(reader.get_char()?),
                 Err(InputError::RetriableError) => continue,
@@ -105,6 +123,7 @@ impl Lexer {
                 '^' => LexToken::Hat,
                 '"' => Self::read_string_token(reader)?,
                 ';' => Self::read_comment(reader)?,
+                ':' => Self::read_keyword(reader)?,
                 ch => Self::read_name(ch, reader)?,
             };
             return Ok(res);

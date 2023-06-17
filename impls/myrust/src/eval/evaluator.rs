@@ -45,6 +45,19 @@ impl Evaluator {
                 .to_ast_node(),
             AstNode::FunctionPtr(fptr) => AstNode::FunctionPtr(fptr),
             AstNode::Lambda(l) => AstNode::Lambda(l),
+            AstNode::Vector(content) => AstNode::Vector(Result::from_iter(
+                content.into_iter().map(|a| self.eval(a, env.clone())),
+            )?),
+            AstNode::Atom(rc) => AstNode::Atom(rc),
+            AstNode::HashMap(content) => {
+                let iter_kv = Result::from_iter(content.into_iter().map(
+                    |a| -> Result<(String, AstNode), EvalError> {
+                        Ok((a.0, self.eval(a.1, env.clone())?))
+                    },
+                ))?;
+
+                AstNode::HashMap(iter_kv)
+            }
         }))
     }
 

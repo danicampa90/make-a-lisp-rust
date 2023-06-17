@@ -1,5 +1,7 @@
 use super::AstNode;
 use super::{LexToken, LexerIterator, LexingError};
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::iter::Peekable;
 
 pub struct Parser<'a> {
@@ -37,8 +39,16 @@ impl<'a> Parser<'a> {
                         self.read_form_list(LexToken::RoundParenClose)?,
                     ))
                 }
-                SquareParenOpen => todo!(),
-                CurlyParenOpen => todo!(),
+                SquareParenOpen => {
+                    self.get_token()?;
+                    Ok(AstNode::Vector(
+                        self.read_form_list(LexToken::SquareParenClose)?,
+                    ))
+                }
+                CurlyParenOpen => {
+                    self.get_token()?;
+                    Ok(self.read_hashmap()?)
+                }
                 Tick => todo!(),
                 BackTick => todo!(),
                 TildeAt => todo!(),
@@ -94,5 +104,23 @@ impl<'a> Parser<'a> {
             }
             unexpected => Err(ParsingError::UnexpectedToken(unexpected)),
         }
+    }
+
+    fn read_hashmap(&mut self) -> Result<AstNode, ParsingError> {
+        let mut result = HashMap::new();
+        while self.peek_token()? != LexToken::CurlyParenClose {
+            let key_token = self.get_token()?;
+
+            let key = match key_token {
+                LexToken::QuotedString(key) => key,
+                tok => return Err(ParsingError::UnexpectedToken(tok)),
+            };
+
+            result.insert(key, self.read_form(false)?);
+        }
+
+        self.get_token()?; // get the '}' token
+
+        return Ok(AstNode::HashMap(result));
     }
 }
