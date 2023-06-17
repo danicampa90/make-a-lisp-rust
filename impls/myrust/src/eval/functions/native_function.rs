@@ -88,6 +88,8 @@ impl dyn NativeFunction {
             let r = params.into_iter().map(|t| evaluator.eval(t, env.clone()));
             params = Result::from_iter(r)?
         }
+
+        evaluator.trace_native_funcall(self, &params);
         self.run(FunctionCallData {
             call_context: Some((params, env)),
             evaluator: evaluator,

@@ -27,7 +27,8 @@ impl NativeFunction for DefBang {
         let value = params.remove(0);
 
         let value = data.evaluator().eval(value, env.clone())?;
-        env.borrow_mut()
+        env.get_root()
+            .borrow_mut()
             .set_owned(EnvironmentEntry::new_ast_value(name, value.clone()));
         Ok(FunctionCallResultSuccess::Value(value))
     }

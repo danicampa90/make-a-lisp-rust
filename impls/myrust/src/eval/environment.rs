@@ -82,6 +82,9 @@ impl Environment {
             parent: None,
         }
     }
+    pub fn parent(&self) -> Option<&SharedEnvironment> {
+        self.parent.as_ref()
+    }
     pub fn new_child(parent: SharedEnvironment) -> Environment {
         Self {
             shared_definitions: HashMap::new(),
@@ -114,5 +117,16 @@ impl Deref for SharedEnvironment {
 impl PartialEq for SharedEnvironment {
     fn eq(&self, other: &Self) -> bool {
         other.as_ptr() == self.as_ptr()
+    }
+}
+
+impl SharedEnvironment {
+    pub fn get_root(&self) -> SharedEnvironment {
+        let self_ref = self.0.borrow();
+        let parent = self_ref.parent();
+        match parent {
+            None => return self.clone(),
+            Some(parent) => parent.get_root(),
+        }
     }
 }

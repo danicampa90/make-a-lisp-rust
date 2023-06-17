@@ -39,3 +39,9 @@
 (def! > (fn* (a b)
   (and (>= a b) (<> a b) )
 ))
+
+; from step 6
+(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))
+
+; debugging
+(def! trace (fn* (enabled?) (do (set-trace-calls enabled?) (set-trace-native-calls enabled?))))

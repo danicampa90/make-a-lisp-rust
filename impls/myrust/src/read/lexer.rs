@@ -61,6 +61,7 @@ impl Lexer {
                 }
                 Ok(_) => str.push(reader.get_char()?),
                 Err(InputError::RetriableError) => continue,
+                Err(InputError::ExitIndication) if str.len() > 0 => return Ok(LexToken::Name(str)),
                 Err(err) => return Err(err.into()),
             }
         }
