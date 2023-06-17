@@ -52,7 +52,13 @@ impl<'a> Parser<'a> {
                 BackTick => todo!(),
                 TildeAt => todo!(),
                 Tilde => todo!(),
-                At => todo!(),
+                At => {
+                    self.get_token()?;
+                    Ok(AstNode::List(vec![
+                        AstNode::UnresolvedSymbol("deref".to_string()),
+                        self.read_form(false)?,
+                    ]))
+                }
                 Hat => todo!(),
                 QuotedString(_) => self.read_atom(),
                 Comment(_) => {

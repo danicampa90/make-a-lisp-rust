@@ -24,7 +24,7 @@ impl NativeFunction for EvalFn {
 
         Ok(FunctionCallResultSuccess::TailCall(TailCallData::new(
             ast.remove(0),
-            env,
+            env.get_root(),
         )))
     }
 }
