@@ -2,6 +2,30 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::eval::{EnvironmentEntry, EvalError, SharedEnvironment};
 
+#[derive(Clone)]
+pub struct LambdaEntry {
+    pub params: Vec<String>,
+    pub body: AstNode,
+    pub env: SharedEnvironment,
+    pub is_macro: bool,
+}
+
+impl LambdaEntry {
+    pub fn set_is_macro(mut self, is_macro: bool) -> Self {
+        self.is_macro = is_macro;
+        self
+    }
+}
+
+impl PartialEq for LambdaEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.body == other.body
+            && self.params == other.params
+            && self.env == other.env
+            && self.is_macro == other.is_macro
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub enum AstNode {
     List(Vec<AstNode>),
@@ -13,13 +37,7 @@ pub enum AstNode {
     Bool(bool),
     Nil,
     FunctionPtr(Rc<EnvironmentEntry>), // internal only: a function pointer, like a lambda. saved in a variable
-    Lambda(
-        Rc<(
-            Vec<String>,       /* params */
-            AstNode,           /* body */
-            SharedEnvironment, /* Environment */
-        )>,
-    ),
+    Lambda(Rc<LambdaEntry>),
     UnresolvedSymbol(String), // only existing during parsing. Unresolved symbols get resolved into a function pointer during evaluation.
 }
 

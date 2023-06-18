@@ -45,3 +45,15 @@
 
 ; debugging
 (def! trace (fn* (enabled?) (do (set-trace-calls enabled?) (set-trace-native-calls enabled?))))
+
+
+; step 7 list functions
+(def! first (fn* (list) 
+  (if
+    (< 0 (count list))
+    (nth list 0)
+    nil
+  )
+))
+
+(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw "odd number of forms to cond")) (cons 'cond (rest (rest xs)))))))

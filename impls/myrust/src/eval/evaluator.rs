@@ -87,8 +87,7 @@ impl Evaluator {
         params: Vec<AstNode>,
         env: SharedEnvironment,
     ) -> FunctionCallResult {
-        let evaluator = Evaluator::new();
-        let func = evaluator.eval(func, env.clone())?;
+        let func = self.eval(func, env.clone())?;
 
         match func {
             AstNode::FunctionPtr(definition) => {
@@ -99,32 +98,38 @@ impl Evaluator {
                 }
             }
             AstNode::Lambda(definition) => {
-                let (lambda_params, lambda_body, captured_env) = &*definition;
+                let lambda = &*definition;
 
-                let mut new_env = Environment::new_child(captured_env.clone());
+                let mut new_env = Environment::new_child(lambda.env.clone());
 
-                if params.len() != lambda_params.len() {
+                if params.len() != lambda.params.len() {
                     return Err(EvalError::custom_exception_str(format!(
                         "Function application expected {} parameters, but found {} instead",
-                        lambda_params.len(),
+                        lambda.params.len(),
                         params.len()
                     )));
                 }
 
                 for i in 0..params.len() {
                     // cloning values here is not super-great
-                    let value = evaluator.eval(params[i].clone(), env.clone())?;
-                    let name = lambda_params[i].clone();
+                    let value = self.eval(params[i].clone(), env.clone())?;
+                    let name = lambda.params[i].clone();
                     new_env.set_owned(EnvironmentEntry::new_ast_value(name, value))
                 }
 
-                self.trace_lambda_funcall(lambda_body, lambda_params, &new_env);
+                self.trace_lambda_funcall(&lambda.body, &lambda.params, &new_env);
 
                 // TODO: Cloning the AST for evaluating it is terribly inefficient! Use references instead.
-                Ok(FunctionCallResultSuccess::new_tailcall(
-                    lambda_body.clone(),
-                    new_env.as_shared(),
-                ))
+                if !lambda.is_macro {
+                    // normal function application means we can actually tailcall it
+                    Ok(FunctionCallResultSuccess::new_tailcall(
+                        lambda.body.clone(),
+                        new_env.as_shared(),
+                    ))
+                } else {
+                    let result = self.eval(lambda.body.clone(), new_env.as_shared())?;
+                    Ok(FunctionCallResultSuccess::new_tailcall(result, env))
+                }
             }
             node => Err(EvalError::InvalidFunctionCallNodeType(node)),
         }

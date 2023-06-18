@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{ops::Index, rc::Rc};
 
 use crate::{eval::EvalError, read::AstNode};
 
@@ -9,6 +9,8 @@ pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
         Rc::new(ListFn),
         Rc::new(IsListFn),
         Rc::new(CountFn),
+        Rc::new(NthFn),
+        Rc::new(RestFn),
         Rc::new(ConsFn),
         Rc::new(ConcatFn),
         Rc::new(VecFn),
@@ -71,6 +73,68 @@ impl NativeFunction for CountFn {
                 .map(|l| l.len())
                 .unwrap_or(0) as i64,
         )))
+    }
+}
+struct NthFn;
+impl NativeFunction for NthFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "nth".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(2), Some(2))?;
+
+        let (mut ast, env) = data.destructure();
+        let mut list = ast.remove(0).try_unwrap_list_or_vector()?;
+        let index = ast.remove(0).try_unwrap_int()? as usize;
+
+        if list.len() > index {
+            Ok(FunctionCallResultSuccess::Value(list.remove(index)))
+        } else {
+            Err(EvalError::custom_exception_str("index out of range in nth"))
+        }
+    }
+}
+struct RestFn;
+impl NativeFunction for RestFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "rest".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+
+        let (mut ast, env) = data.destructure();
+
+        let res = match ast.remove(0) {
+            AstNode::List(mut l) if l.len() > 0 => {
+                l.remove(0);
+                l
+            }
+            AstNode::Vector(mut l) if l.len() > 0 => {
+                l.remove(0);
+                l
+            }
+
+            AstNode::List(_) => vec![],
+            AstNode::Vector(_) => vec![],
+            AstNode::Nil => vec![],
+            x => {
+                return Err(EvalError::TypeError {
+                    expected: "List/Vector/Nil".to_string(),
+                    got: x,
+                })
+            }
+        };
+        Ok(FunctionCallResultSuccess::Value(AstNode::List(res)))
     }
 }
 

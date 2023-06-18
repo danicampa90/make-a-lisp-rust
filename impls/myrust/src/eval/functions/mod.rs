@@ -8,6 +8,7 @@ mod eval;
 mod files;
 mod lambdas;
 mod lists;
+mod macros;
 mod math;
 mod printing;
 mod quote;
@@ -31,6 +32,7 @@ pub fn global_functions() -> Vec<Rc<dyn NativeFunction>> {
     fns.append(&mut debugging::functions());
     fns.append(&mut atom::functions());
     fns.append(&mut quote::functions());
+    fns.append(&mut macros::functions());
 
     return fns;
 }

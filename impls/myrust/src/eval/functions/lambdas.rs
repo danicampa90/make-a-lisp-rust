@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::read::AstNode;
+use crate::read::{AstNode, LambdaEntry};
 
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
@@ -31,8 +31,15 @@ impl NativeFunction for FnStar {
             params_as_strings.push(lambda_param.try_unwrap_symbol()?);
         }
 
+        let lambda = LambdaEntry {
+            body: lambda_body,
+            params: params_as_strings,
+            is_macro: false,
+            env: env.clone(),
+        };
+
         return Ok(FunctionCallResultSuccess::Value(AstNode::Lambda(Rc::new(
-            (params_as_strings, lambda_body, env.clone()),
+            lambda,
         ))));
     }
 }
