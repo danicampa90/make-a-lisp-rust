@@ -1,4 +1,4 @@
-use std::{ops::Index, rc::Rc};
+use std::rc::Rc;
 
 use crate::{eval::EvalError, read::AstNode};
 
@@ -88,7 +88,7 @@ impl NativeFunction for NthFn {
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
         data.check_parameters_count_range(Some(2), Some(2))?;
 
-        let (mut ast, env) = data.destructure();
+        let (mut ast, _env) = data.destructure();
         let mut list = ast.remove(0).try_unwrap_list_or_vector()?;
         let index = ast.remove(0).try_unwrap_int()? as usize;
 
@@ -112,7 +112,7 @@ impl NativeFunction for RestFn {
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
         data.check_parameters_count_range(Some(1), Some(1))?;
 
-        let (mut ast, env) = data.destructure();
+        let (mut ast, _env) = data.destructure();
 
         let res = match ast.remove(0) {
             AstNode::List(mut l) if l.len() > 0 => {
