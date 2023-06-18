@@ -1,7 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 
 use crate::{
-    eval::{evaluator, EvalError, Evaluator, SharedEnvironment},
+    eval::{EvalError, Evaluator, SharedEnvironment},
     read::AstNode,
 };
 
