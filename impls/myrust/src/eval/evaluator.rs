@@ -102,19 +102,37 @@ impl Evaluator {
 
                 let mut new_env = Environment::new_child(lambda.env.clone());
 
-                if params.len() != lambda.params.len() {
-                    return Err(EvalError::custom_exception_str(format!(
-                        "Function application expected {} parameters, but found {} instead",
-                        lambda.params.len(),
-                        params.len()
-                    )));
+                let mut params_names = lambda.params.clone();
+                let mut params_values = vec![];
+
+                for p in params {
+                    params_values.push(self.eval(p, env.clone())?);
                 }
 
-                for i in 0..params.len() {
-                    // cloning values here is not super-great
-                    let value = self.eval(params[i].clone(), env.clone())?;
-                    let name = lambda.params[i].clone();
-                    new_env.set_owned(EnvironmentEntry::new_ast_value(name, value))
+                while params_names.len() > 0 {
+                    let name = params_names.remove(0);
+                    if name == "&" {
+                        // special case: now we bind all the remaining values to the last parameter
+                        let name = params_names.remove(0);
+                        if params_names.len() != 0 {
+                            // sanity check: no more parameters after this
+                            return Err(EvalError::custom_exception_str(
+                                "& does not appear in penultimate position in the function parameters"
+                                    .to_string(),
+                            ));
+                        }
+                        let value = AstNode::List(params_values);
+                        new_env.set_owned(EnvironmentEntry::new_ast_value(name, value));
+                        break;
+                    }
+
+                    if params_values.len() == 0 {
+                        return Err(EvalError::custom_exception_str(
+                            "Not enough parameters supplied to lambda function call".to_string(),
+                        ));
+                    }
+                    let value = params_values.remove(0);
+                    new_env.set_owned(EnvironmentEntry::new_ast_value(name, value));
                 }
 
                 self.trace_lambda_funcall(&lambda.body, &lambda.params, &new_env);
