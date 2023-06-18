@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::read::AstNode;
+use crate::{eval::EvalError, read::AstNode};
 
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
@@ -11,6 +11,7 @@ pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
         Rc::new(CountFn),
         Rc::new(ConsFn),
         Rc::new(ConcatFn),
+        Rc::new(VecFn),
     ]
 }
 
@@ -117,5 +118,31 @@ impl NativeFunction for ConcatFn {
         }
 
         Ok(FunctionCallResultSuccess::Value(AstNode::List(list)))
+    }
+}
+
+struct VecFn;
+impl NativeFunction for VecFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "vec".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+        let elements = match data.destructure().0.remove(0) {
+            AstNode::List(elements) => elements,
+            AstNode::Vector(elements) => elements,
+            x => {
+                return Err(EvalError::TypeError {
+                    expected: "List/Vector".to_string(),
+                    got: x,
+                })
+            }
+        };
+        Ok(FunctionCallResultSuccess::Value(AstNode::Vector(elements)))
     }
 }

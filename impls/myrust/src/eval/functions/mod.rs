@@ -10,6 +10,7 @@ mod lambdas;
 mod lists;
 mod math;
 mod printing;
+mod quote;
 mod var_declarations;
 
 use std::rc::Rc;
@@ -29,6 +30,7 @@ pub fn global_functions() -> Vec<Rc<dyn NativeFunction>> {
     fns.append(&mut files::functions());
     fns.append(&mut debugging::functions());
     fns.append(&mut atom::functions());
+    fns.append(&mut quote::functions());
 
     return fns;
 }

@@ -48,10 +48,34 @@ impl<'a> Parser<'a> {
                     self.get_token()?;
                     Ok(self.read_hashmap()?)
                 }
-                Tick => todo!(),
-                BackTick => todo!(),
-                TildeAt => todo!(),
-                Tilde => todo!(),
+                Tick => {
+                    self.get_token()?;
+                    Ok(AstNode::List(vec![
+                        AstNode::UnresolvedSymbol("quote".to_string()),
+                        self.read_form(false)?,
+                    ]))
+                }
+                BackTick => {
+                    self.get_token()?;
+                    Ok(AstNode::List(vec![
+                        AstNode::UnresolvedSymbol("quasiquote".to_string()),
+                        self.read_form(false)?,
+                    ]))
+                }
+                Tilde => {
+                    self.get_token()?;
+                    Ok(AstNode::List(vec![
+                        AstNode::UnresolvedSymbol("unquote".to_string()),
+                        self.read_form(false)?,
+                    ]))
+                }
+                TildeAt => {
+                    self.get_token()?;
+                    Ok(AstNode::List(vec![
+                        AstNode::UnresolvedSymbol("splice-unquote".to_string()),
+                        self.read_form(false)?,
+                    ]))
+                }
                 At => {
                     self.get_token()?;
                     Ok(AstNode::List(vec![
