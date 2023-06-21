@@ -83,6 +83,7 @@ impl AstPrinter {
     }
     fn append_string_repr(&self, str: &str, builder: &mut Builder) {
         if str.starts_with(Lexer::KEYWORD_PREFIX) {
+            builder.append(":");
             builder.append(&str[Lexer::KEYWORD_PREFIX.len()..]);
             return;
         }

@@ -2,6 +2,8 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::eval::{EnvironmentEntry, EvalError, SharedEnvironment};
 
+use super::Lexer;
+
 #[derive(Clone)]
 pub struct LambdaEntry {
     pub params: Vec<String>,
@@ -109,6 +111,15 @@ impl AstNode {
             }),
         }
     }
+    pub fn try_unwrap_keyword(self) -> Result<String, EvalError> {
+        match self {
+            AstNode::String(i) if i.starts_with(Lexer::KEYWORD_PREFIX) => Ok(i),
+            v => Err(EvalError::TypeError {
+                expected: "Keyword".to_string(),
+                got: v,
+            }),
+        }
+    }
     pub fn try_unwrap_bool(self) -> Result<bool, EvalError> {
         match self {
             AstNode::Bool(i) => Ok(i),
@@ -135,5 +146,9 @@ impl AstNode {
                 got: v,
             }),
         }
+    }
+
+    pub fn create_keyword(name: &str) -> AstNode {
+        return AstNode::String(Lexer::KEYWORD_PREFIX.to_string() + name);
     }
 }

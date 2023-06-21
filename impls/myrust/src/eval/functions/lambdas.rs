@@ -5,11 +5,11 @@ use crate::read::{AstNode, LambdaEntry};
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
 pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
-    vec![Rc::new(FnStar)]
+    vec![Rc::new(FnStarFn)]
 }
 
-struct FnStar;
-impl NativeFunction for FnStar {
+struct FnStarFn;
+impl NativeFunction for FnStarFn {
     fn evaluates_arguments(&self) -> bool {
         false
     }

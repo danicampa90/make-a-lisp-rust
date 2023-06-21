@@ -106,7 +106,12 @@ impl Evaluator {
                 let mut params_values = vec![];
 
                 for p in params {
-                    params_values.push(self.eval(p, env.clone())?);
+                    if lambda.is_macro {
+                        // macros don't evaluate their arguments - they just get passed in
+                        params_values.push(p);
+                    } else {
+                        params_values.push(self.eval(p, env.clone())?);
+                    }
                 }
 
                 while params_names.len() > 0 {
@@ -196,7 +201,10 @@ impl Evaluator {
             for n in params_names {
                 match env.find(n) {
                     Some(v) => match v.value() {
-                        _ => println!("    {} = {:?}", n, 4),
+                        EnvironmentEntryValue::Value(val) => println!("    {} = {:?}", n, val),
+                        EnvironmentEntryValue::NativeFunction(function) => {
+                            println!("    {} = <native function {}>", n, function.name())
+                        }
                     },
                     None => println!("    {} = <unbound!>", n),
                 }

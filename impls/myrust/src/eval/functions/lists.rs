@@ -8,6 +8,7 @@ pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
     vec![
         Rc::new(ListFn),
         Rc::new(IsListFn),
+        Rc::new(IsVectorFn),
         Rc::new(CountFn),
         Rc::new(NthFn),
         Rc::new(RestFn),
@@ -52,6 +53,26 @@ impl NativeFunction for IsListFn {
         )))
     }
 }
+
+struct IsVectorFn;
+impl NativeFunction for IsVectorFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "vector?".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+
+        Ok(FunctionCallResultSuccess::Value(AstNode::Bool(
+            data.destructure().0.remove(0).try_unwrap_vector().is_ok(),
+        )))
+    }
+}
+
 struct CountFn;
 impl NativeFunction for CountFn {
     fn evaluates_arguments(&self) -> bool {

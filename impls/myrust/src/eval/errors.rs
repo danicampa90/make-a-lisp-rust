@@ -13,7 +13,7 @@ pub enum EvalError {
         expected: String,
         got: AstNode,
     },
-    CustomException(String),
+    CustomException(AstNode),
 }
 
 impl EvalError {
@@ -21,6 +21,6 @@ impl EvalError {
     where
         T: ToString,
     {
-        EvalError::CustomException(s.to_string())
+        EvalError::CustomException(AstNode::String(s.to_string()))
     }
 }

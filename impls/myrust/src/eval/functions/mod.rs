@@ -5,6 +5,7 @@ mod booleans;
 mod control_flow;
 mod debugging;
 mod eval;
+mod exceptions;
 mod files;
 mod lambdas;
 mod lists;
@@ -12,6 +13,7 @@ mod macros;
 mod math;
 mod printing;
 mod quote;
+mod symbol;
 mod var_declarations;
 
 use std::rc::Rc;
@@ -33,6 +35,8 @@ pub fn global_functions() -> Vec<Rc<dyn NativeFunction>> {
     fns.append(&mut atom::functions());
     fns.append(&mut quote::functions());
     fns.append(&mut macros::functions());
+    fns.append(&mut exceptions::functions());
+    fns.append(&mut symbol::functions());
 
     return fns;
 }

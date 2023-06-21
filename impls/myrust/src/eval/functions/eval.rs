@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use crate::eval::EvalError;
+
 use super::{
     FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction, TailCallData,
 };
@@ -52,7 +54,7 @@ impl NativeFunction for ReadStringFn {
 
         match parser.read_form(true) {
             Ok(ast) => Ok(FunctionCallResultSuccess::Value(ast)),
-            Err(parse_error) => Err(crate::eval::EvalError::CustomException(format!(
+            Err(parse_error) => Err(EvalError::custom_exception_str(format!(
                 "eval error: {:?}",
                 parse_error
             ))),
