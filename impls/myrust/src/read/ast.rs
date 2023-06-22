@@ -88,7 +88,7 @@ impl AstNode {
         match self {
             AstNode::HashMap(i) => Ok(i),
             v => Err(EvalError::TypeError {
-                expected: "Vector".to_string(),
+                expected: "Hashmap".to_string(),
                 got: v,
             }),
         }

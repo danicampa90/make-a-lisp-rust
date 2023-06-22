@@ -135,3 +135,5 @@
 (def! nil? (fn* (a) (= a nil)))
 
 (defmacro! vector (fn* (& args) `(vec '(~@args)) ))
+
+(defmacro! hash-map (fn* (& args) `(assoc {} ~@args ) ))

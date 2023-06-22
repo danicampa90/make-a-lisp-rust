@@ -127,6 +127,7 @@ impl Evaluator {
                             ));
                         }
                         let value = AstNode::List(params_values);
+                        params_values = vec![];
                         new_env.set_owned(EnvironmentEntry::new_ast_value(name, value));
                         break;
                     }
@@ -138,6 +139,11 @@ impl Evaluator {
                     }
                     let value = params_values.remove(0);
                     new_env.set_owned(EnvironmentEntry::new_ast_value(name, value));
+                }
+                if params_values.len() != 0 {
+                    return Err(EvalError::custom_exception_str(
+                        "Too many parameters passed to lambda call",
+                    ));
                 }
 
                 self.trace_lambda_funcall(&lambda.body, &lambda.params, &new_env);

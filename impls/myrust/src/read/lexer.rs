@@ -69,7 +69,7 @@ impl Lexer {
         }
     }
     fn read_keyword(reader: &mut InputReader) -> Result<LexToken, LexingError> {
-        let mut str = Self::KEYWORD_PREFIX.to_string() + ":";
+        let mut str = Self::KEYWORD_PREFIX.to_string();
         let specials = vec!['(', ')', '[', ']', '{', '}', ','];
 
         loop {

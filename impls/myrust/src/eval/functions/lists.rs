@@ -8,13 +8,13 @@ pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
     vec![
         Rc::new(ListFn),
         Rc::new(IsListFn),
-        Rc::new(IsVectorFn),
         Rc::new(CountFn),
         Rc::new(NthFn),
         Rc::new(RestFn),
         Rc::new(ConsFn),
         Rc::new(ConcatFn),
         Rc::new(VecFn),
+        Rc::new(IsVectorFn),
     ]
 }
 

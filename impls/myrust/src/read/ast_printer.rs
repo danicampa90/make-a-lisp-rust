@@ -52,7 +52,7 @@ impl AstPrinter {
             AstNode::Int(num) => builder.append(num.to_string()),
             AstNode::UnresolvedSymbol(id) => builder.append(id.as_str()),
             AstNode::String(str) => match self.format {
-                AstPrintFormat::Readable => builder.append(str.as_str()),
+                AstPrintFormat::Readable => self.append_string_readable(str, builder),
                 AstPrintFormat::Repr => self.append_string_repr(str, builder),
             },
             AstNode::Bool(true) => builder.append("true"),
@@ -79,6 +79,16 @@ impl AstPrinter {
                 }
                 builder.append("}")
             }
+        }
+    }
+
+    fn append_string_readable(&self, str: &str, builder: &mut Builder) {
+        if str.starts_with(Lexer::KEYWORD_PREFIX) {
+            builder.append(":");
+            builder.append(&str[Lexer::KEYWORD_PREFIX.len()..]);
+            return;
+        } else {
+            builder.append(str)
         }
     }
     fn append_string_repr(&self, str: &str, builder: &mut Builder) {
