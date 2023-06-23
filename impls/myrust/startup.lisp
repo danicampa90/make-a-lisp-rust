@@ -75,7 +75,7 @@
 ; MY TESTS
 (trace false)
 (defmacro! test (fn* (name expr1 expr2)
-  `(if (= ~expr1 ~expr2) nil (throw (str "TEST FAILED: " ~name)))
+  `(if (= ~expr1 ~expr2) nil (throw (str "TEST FAILED: " ~name "\nfirst:" ~expr1 "\nsecond:" ~expr2)))
 ))
 
 
@@ -100,18 +100,25 @@
 ; basically it concatenates the last element of args (which must be a list) to the previous elements.
 ; it's a bit overcomplicated here, should be rewritten.
 ; initial call should have 'existing = '()
+
+(def! quote-list-items (fn* (list)
+  (if (empty? list) 
+    '()
+    (cons `(quote ~(first list)) (quote-list-items (rest list)))
+  )
+))
 (def! concat-apply-args (fn* (existing args) 
   (cond 
-    (and (= (count args) 1) (sequential? (first args))) (concat existing (first args))
+    (and (= (count args) 1) (sequential? (first args))) (concat existing (quote-list-items (first args)))
     (= (count args) 1) (throw "last argument in apply is not a list")
-    "else" (concat-apply-args (concat existing (list (first args))) (rest args) )
+    "else" (concat-apply-args (concat existing (list `(quote ~(first args)))) (rest args) )
   )
 ))
 
-(test "concat-apply-args - test 1" (concat-apply-args '() '(1 2 (3 4))) '(1 2 3 4) )
+(test "concat-apply-args - test 1" (concat-apply-args '() '(1 a (3 4))) '('1 'a '3 '4) )
 (test "concat-apply-args - test 2" (concat-apply-args '() '(())) '() )
-(test "concat-apply-args - test 3" (concat-apply-args '() '(1 2 ())) '(1 2) )
-(test "concat-apply-args - test 4" (concat-apply-args '() '((1))) '(1) )
+(test "concat-apply-args - test 3" (concat-apply-args '() '(1 2 ())) '('1 '2) )
+(test "concat-apply-args - test 4" (concat-apply-args '() '((1))) '('1) )
 
 ; apply, implemented only in terms of existing functions :)
 (def! apply (fn* (fn & args) 
