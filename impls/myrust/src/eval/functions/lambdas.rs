@@ -5,7 +5,7 @@ use crate::read::{AstNode, LambdaEntry};
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
 pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
-    vec![Rc::new(FnStarFn)]
+    vec![Rc::new(FnStarFn), Rc::new(IsFnFn)]
 }
 
 struct FnStarFn;
@@ -41,5 +41,29 @@ impl NativeFunction for FnStarFn {
         return Ok(FunctionCallResultSuccess::Value(AstNode::Lambda(Rc::new(
             lambda,
         ))));
+    }
+}
+
+struct IsFnFn;
+impl NativeFunction for IsFnFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "fn?".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+
+        let node = data.destructure().0.remove(0);
+
+        let is_lambda = match node {
+            AstNode::Lambda(_) => true,
+            AstNode::FunctionPtr(_) => true,
+            _ => false,
+        };
+        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(is_lambda)));
     }
 }

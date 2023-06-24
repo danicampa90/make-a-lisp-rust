@@ -5,7 +5,19 @@ use crate::read::AstNode;
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
 pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
-    vec![Rc::new(EqualOp), Rc::new(LessThanOp), Rc::new(NandOp)]
+    vec![
+        Rc::new(EqualOp),
+        Rc::new(NumComparisonOp::Gt),
+        Rc::new(NumComparisonOp::Lt),
+        Rc::new(NumComparisonOp::Ge),
+        Rc::new(NumComparisonOp::Le),
+        Rc::new(BooleanBinaryOp::And),
+        Rc::new(BooleanBinaryOp::Or),
+        Rc::new(BooleanBinaryOp::Nand),
+        Rc::new(BooleanBinaryOp::Nor),
+        Rc::new(BooleanBinaryOp::Xor),
+        Rc::new(NotOp),
+    ]
 }
 
 struct EqualOp;
@@ -30,14 +42,25 @@ impl NativeFunction for EqualOp {
     }
 }
 
-struct LessThanOp;
-impl NativeFunction for LessThanOp {
+enum NumComparisonOp {
+    Gt,
+    Lt,
+    Le,
+    Ge,
+}
+impl NativeFunction for NumComparisonOp {
     fn evaluates_arguments(&self) -> bool {
         true
     }
 
     fn name(&self) -> String {
-        "<".to_string()
+        match self {
+            NumComparisonOp::Gt => ">",
+            NumComparisonOp::Lt => "<",
+            NumComparisonOp::Le => "<=",
+            NumComparisonOp::Ge => ">=",
+        }
+        .to_string()
     }
 
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
@@ -47,19 +70,38 @@ impl NativeFunction for LessThanOp {
 
         let a = params.remove(0).try_unwrap_int()?;
         let b = params.remove(0).try_unwrap_int()?;
+        let result = match self {
+            NumComparisonOp::Gt => a > b,
+            NumComparisonOp::Lt => a < b,
+            NumComparisonOp::Le => a <= b,
+            NumComparisonOp::Ge => a >= b,
+        };
 
-        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(a < b)));
+        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(result)));
     }
 }
 
-struct NandOp;
-impl NativeFunction for NandOp {
+enum BooleanBinaryOp {
+    And,
+    Or,
+    Nand,
+    Nor,
+    Xor,
+}
+impl NativeFunction for BooleanBinaryOp {
     fn evaluates_arguments(&self) -> bool {
         true
     }
 
     fn name(&self) -> String {
-        "nand".to_string()
+        match self {
+            BooleanBinaryOp::And => "and",
+            BooleanBinaryOp::Or => "or",
+            BooleanBinaryOp::Nand => "nand",
+            BooleanBinaryOp::Nor => "nor",
+            BooleanBinaryOp::Xor => "xor",
+        }
+        .to_string()
     }
 
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
@@ -70,41 +112,39 @@ impl NativeFunction for NandOp {
         let a = params.remove(0).try_unwrap_bool()?;
         let b = params.remove(0).try_unwrap_bool()?;
 
-        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(!(a && b))));
+        let result = match self {
+            BooleanBinaryOp::And => a && b,
+            BooleanBinaryOp::Or => a || b,
+            BooleanBinaryOp::Nand => !(a && b),
+            BooleanBinaryOp::Nor => !(a || b),
+            BooleanBinaryOp::Xor => (!a && b) || (a && !b),
+        };
+
+        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(result)));
     }
 }
 
-/*
-// Step 4: Bool operators & boolean logic
-env.set_owned(EnvironmentEntry::new_native_function(
-    "=".to_string(),
-    |params, _env| {
-        check_param_count(&params, 2, "=")?;
-        Ok(AstNode::Bool(params[0] == params[1]))
-    },
-));
+struct NotOp;
+impl NativeFunction for NotOp {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
 
-env.set_owned(EnvironmentEntry::new_native_function(
-    "<".to_string(),
-    |params, _env| {
-        check_param_count(&params, 2, "<")?;
-        match (&params[0], &params[1]) {
-            (AstNode::Int(a), AstNode::Int(b)) => Ok(AstNode::Bool(a < b)),
-            _ => Err(EvalError::custom_exception_str(
-                "< has some invalid parameter types",
-            )),
-        }
-    },
-));
-env.set_owned(EnvironmentEntry::new_native_function(
-    "nand".to_string(),
-    |params, _env| {
-        check_param_count(&params, 2, "nand")?;
-        match (&params[0], &params[1]) {
-            (AstNode::Bool(a), AstNode::Bool(b)) => Ok(AstNode::Bool(!(*a && *b))),
-            _ => Err(EvalError::custom_exception_str(
-                "or has some invalid parameter types",
-            )),
-        }
-    },
-));*/
+    fn name(&self) -> String {
+        "not".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+
+        let (mut params, _env) = data.destructure();
+
+        let a = match params.remove(0) {
+            AstNode::Bool(val) => val,
+            AstNode::Nil => false,
+            _ => true,
+        };
+
+        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(!a)));
+    }
+}

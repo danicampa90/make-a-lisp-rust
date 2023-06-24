@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::read::AstNode;
 
 #[derive(Debug)]
@@ -22,5 +24,29 @@ impl EvalError {
         T: ToString,
     {
         EvalError::CustomException(AstNode::String(s.to_string()))
+    }
+}
+
+impl Display for EvalError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EvalError::SymbolNotFound(symbol) => write!(f, "\'{}\' not found", symbol),
+            EvalError::InvalidFunctionCallNodeType(node) => {
+                write!(f, "Cannot call \'{}\' - expecting a function pointer", node)
+            }
+            EvalError::ParameterCountError {
+                expected_min,
+                expected_max,
+                provided,
+            } => write!(
+                f,
+                "Invalid number of parameters: minimum: {:?}, maximum:{:?}, provided:{}",
+                expected_min, expected_max, provided
+            ),
+            EvalError::TypeError { expected, got } => {
+                write!(f, "Expected \'{}\' - found \'{}\'", expected, got)
+            }
+            EvalError::CustomException(node) => write!(f, "Custom exception: {:?}", node),
+        }
     }
 }

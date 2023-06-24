@@ -10,6 +10,7 @@ pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
         Rc::new(MathBinaryOp::Minus),
         Rc::new(MathBinaryOp::Times),
         Rc::new(MathBinaryOp::Divide),
+        Rc::new(IsNumberFn),
     ]
 }
 
@@ -48,5 +49,25 @@ impl NativeFunction for MathBinaryOp {
         };
 
         Ok(FunctionCallResultSuccess::Value(AstNode::Int(result)))
+    }
+}
+
+struct IsNumberFn;
+impl NativeFunction for IsNumberFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "number?".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+
+        let node = data.destructure().0.remove(0);
+        let is_number = node.try_unwrap_int().is_ok();
+
+        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(is_number)));
     }
 }

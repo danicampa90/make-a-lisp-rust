@@ -12,7 +12,7 @@ pub enum ParsingError {
     LexingError(LexingError),
     UnexpectedToken(LexToken),
     UnexpectedEOF,
-    Eof,
+    EOF,
 }
 impl From<LexingError> for ParsingError {
     fn from(value: LexingError) -> Self {
@@ -83,7 +83,6 @@ impl<'a> Parser<'a> {
                         self.read_form(false)?,
                     ]))
                 }
-                Hat => todo!(),
                 QuotedString(_) => self.read_atom(),
                 Comment(_) => {
                     self.get_token()?;
@@ -95,7 +94,7 @@ impl<'a> Parser<'a> {
                     Err(ParsingError::UnexpectedToken(unexpected))
                 }
             },
-            Err(ParsingError::UnexpectedEOF) if eof_allowed => Err(ParsingError::Eof),
+            Err(ParsingError::UnexpectedEOF) if eof_allowed => Err(ParsingError::EOF),
             Err(err) => Err(err),
         }
     }
@@ -128,7 +127,15 @@ impl<'a> Parser<'a> {
                 if let Ok(num) = name.parse() {
                     Ok(AstNode::Int(num))
                 } else {
-                    Ok(AstNode::UnresolvedSymbol(name))
+                    if name == "nil" {
+                        Ok(AstNode::Nil)
+                    } else if name == "true" {
+                        Ok(AstNode::Bool(true))
+                    } else if name == "false" {
+                        Ok(AstNode::Bool(false))
+                    } else {
+                        Ok(AstNode::UnresolvedSymbol(name))
+                    }
                 }
             }
             unexpected => Err(ParsingError::UnexpectedToken(unexpected)),

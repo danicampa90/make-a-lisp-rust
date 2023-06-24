@@ -2,14 +2,15 @@ mod eval;
 mod read;
 use eval::{new_base_environment, EvalError, Evaluator, SharedEnvironment};
 use read::{
-    AstPrintFormat, AstPrinter, InputReader, Lexer, Parser, ParsingError, REPLTerminalInputSource,
-    StringInputSource,
+    AstPrintFormat, AstPrinter, InputReader, InputSource, Lexer, Parser, ParsingError,
+    REPLTerminalInputSource, StringInputSource,
 };
 
 fn main() {
     let evaluator = Evaluator::new();
     let environment = new_base_environment();
     let ast_printer = AstPrinter::new(AstPrintFormat::Repr);
+    let mut ast_printer = Some(&ast_printer);
 
     // load initial environment via file parsing
     let startup_code = std::fs::read_to_string("startup.lisp");
@@ -22,6 +23,7 @@ fn main() {
             )
         }
     };
+
     let mut input = InputReader::new(Box::new(StringInputSource::new(startup_code)));
     let lexer = Lexer::create_lexer_iterator(&mut input);
     let mut parser = Parser::new(lexer);
@@ -32,18 +34,23 @@ fn main() {
         return;
     }
 
+    let mut args: Vec<String> = std::env::args().collect();
+    let inputsource: Box<dyn InputSource> = if args.len() >= 2 {
+        let path = args.remove(1);
+        let content = std::fs::read_to_string(path).unwrap();
+        ast_printer = None;
+        Box::new(StringInputSource::new(content))
+    } else {
+        Box::new(REPLTerminalInputSource::new())
+    };
+
     // start REPL
-    let mut input = InputReader::new(Box::new(REPLTerminalInputSource::new()));
+    let mut input = InputReader::new(inputsource);
     let lexer = Lexer::create_lexer_iterator(&mut input);
     let mut parser = Parser::new(lexer);
 
     loop {
-        let eval_result = run(
-            &mut parser,
-            &evaluator,
-            environment.clone(),
-            Some(&ast_printer),
-        );
+        let eval_result = run(&mut parser, &evaluator, environment.clone(), ast_printer);
         if eval_result.is_ok() {
             return;
         }
@@ -65,7 +72,7 @@ fn run(
                     println!("{}", printer.ast_to_string(eval_result))
                 }
             }
-            Err(ParsingError::Eof) => return Ok(()),
+            Err(ParsingError::EOF) => return Ok(()),
             Err(err) => {
                 return Err(EvalError::custom_exception_str(format!(
                     "Parsing error: {:?}",
@@ -78,6 +85,6 @@ fn run(
 
 fn print_eval_result_error(result: Result<(), EvalError>) {
     if let Err(err) = result {
-        println!("Error: {:?}", err);
+        println!("Error: {}", err);
     }
 }

@@ -112,8 +112,19 @@ impl NativeFunction for SwapBangFn {
         let atom: Rc<RefCell<AstNode>> = ast.remove(0).try_unwrap_atom()?;
         let function = ast.remove(0);
 
+        let mut ast: Vec<AstNode> = ast
+            .into_iter()
+            .map(|parm| AstNode::List(vec![AstNode::UnresolvedSymbol("quote".to_string()), parm]))
+            .collect();
+
         let atom_value: AstNode = atom.borrow().clone();
-        ast.insert(0, atom_value);
+        ast.insert(
+            0,
+            AstNode::List(vec![
+                AstNode::UnresolvedSymbol("quote".to_string()),
+                atom_value,
+            ]),
+        );
         ast.insert(0, function);
 
         let new_value = evaluator.eval(AstNode::List(ast), env)?; // (<function> <atom_value> <rest...>)

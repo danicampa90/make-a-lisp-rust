@@ -13,7 +13,6 @@ pub enum LexToken {
     TildeAt,              // ~@
     Tilde,                // ~
     At,                   // @
-    Hat,                  // ^
     QuotedString(String), // "hello"
     Comment(String),      // ; this is a comment
     Name(String),         // true 10 nil anothername
@@ -120,7 +119,6 @@ impl Lexer {
                     }
                 }
                 '@' => LexToken::At,
-                '^' => LexToken::Hat,
                 '"' => Self::read_string_token(reader)?,
                 ';' => Self::read_comment(reader)?,
                 ':' => Self::read_keyword(reader)?,

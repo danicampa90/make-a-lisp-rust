@@ -130,3 +130,14 @@ impl SharedEnvironment {
         }
     }
 }
+
+pub fn new_base_environment() -> SharedEnvironment {
+    let mut env = Environment::new_root();
+
+    for func in super::functions::global_functions() {
+        env.set_owned(EnvironmentEntry::new_native(func));
+    }
+
+    let global = Environment::new_child(env.as_shared());
+    global.as_shared()
+}

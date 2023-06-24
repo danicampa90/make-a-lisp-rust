@@ -8,6 +8,7 @@ mod eval;
 mod exceptions;
 mod files;
 mod hashmaps;
+mod io;
 mod lambdas;
 mod lists;
 mod macros;
@@ -39,6 +40,7 @@ pub fn global_functions() -> Vec<Rc<dyn NativeFunction>> {
     fns.append(&mut exceptions::functions());
     fns.append(&mut symbol::functions());
     fns.append(&mut hashmaps::functions());
+    fns.append(&mut io::functions());
 
     return fns;
 }

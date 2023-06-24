@@ -22,6 +22,7 @@ pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
             "",
             "str",
         )),
+        Rc::new(IsStringFn),
     ]
 }
 
@@ -94,5 +95,25 @@ impl NativeFunction for PrintFunction {
                 builder.string().unwrap(),
             )));
         }
+    }
+}
+
+struct IsStringFn;
+impl NativeFunction for IsStringFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "string?".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+
+        let node = data.destructure().0.remove(0);
+        let is_string = node.try_unwrap_string().is_ok();
+
+        return Ok(FunctionCallResultSuccess::Value(AstNode::Bool(is_string)));
     }
 }

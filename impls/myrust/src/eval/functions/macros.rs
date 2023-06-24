@@ -8,7 +8,7 @@ use crate::{
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
 pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
-    vec![Rc::new(DefMacroFn)]
+    vec![Rc::new(DefMacroFn), Rc::new(IsMacroFn)]
 }
 
 struct DefMacroFn;
@@ -44,5 +44,31 @@ impl NativeFunction for DefMacroFn {
             .borrow_mut()
             .set_owned(EnvironmentEntry::new_ast_value(name, value.clone()));
         Ok(FunctionCallResultSuccess::Value(value))
+    }
+}
+
+struct IsMacroFn;
+impl NativeFunction for IsMacroFn {
+    fn evaluates_arguments(&self) -> bool {
+        true
+    }
+
+    fn name(&self) -> String {
+        "macro?".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(Some(1), Some(1))?;
+
+        let (mut params, env) = data.destructure();
+
+        let function = params.remove(0);
+
+        let is_macro = match function {
+            AstNode::Lambda(func) => (*func).is_macro,
+            _ => false,
+        };
+
+        Ok(FunctionCallResultSuccess::Value(AstNode::Bool(is_macro)))
     }
 }
