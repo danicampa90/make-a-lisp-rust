@@ -60,7 +60,7 @@ impl NativeFunction for IsMacroFn {
     fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
         data.check_parameters_count_range(Some(1), Some(1))?;
 
-        let (mut params, env) = data.destructure();
+        let (mut params, _env) = data.destructure();
 
         let function = params.remove(0);
 
