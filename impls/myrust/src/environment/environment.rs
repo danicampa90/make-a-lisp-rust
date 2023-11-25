@@ -41,4 +41,14 @@ impl Environment {
     pub fn set_owned(&mut self, entry: EnvironmentEntry) {
         self.set(Rc::new(entry))
     }
+    pub fn get_keys(&self) -> Vec<String> {
+        match self.parent {
+            None => self.shared_definitions.keys().cloned().collect(),
+            Some(ref p) => {
+                let mut parent_vector = p.borrow().get_keys();
+                parent_vector.append(&mut self.shared_definitions.keys().cloned().collect());
+                return parent_vector;
+            }
+        }
+    }
 }

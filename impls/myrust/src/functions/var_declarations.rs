@@ -1,11 +1,14 @@
 use std::rc::Rc;
 
-use crate::eval::{Environment, EnvironmentEntry, EvalError};
+use crate::{
+    eval::{Environment, EnvironmentEntry, EvalError},
+    read::AstNode,
+};
 
 use super::{FunctionCallData, FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 
 pub fn functions() -> Vec<Rc<dyn NativeFunction>> {
-    vec![Rc::new(DefBang), Rc::new(LetStar)]
+    vec![Rc::new(DefBang), Rc::new(LetStar), Rc::new(GetDefs)]
 }
 
 struct DefBang;
@@ -72,5 +75,30 @@ impl NativeFunction for LetStar {
 
         let value = params.remove(0);
         Ok(FunctionCallResultSuccess::new_tailcall(value, env))
+    }
+}
+
+struct GetDefs;
+impl NativeFunction for GetDefs {
+    fn evaluates_arguments(&self) -> bool {
+        false
+    }
+
+    fn name(&self) -> String {
+        "getdefs".to_string()
+    }
+
+    fn run(&self, mut data: FunctionCallData) -> FunctionCallResult {
+        data.check_parameters_count_range(None, Some(0))?;
+
+        let (_params, env) = data.destructure();
+        let keys = env
+            .borrow()
+            .get_keys()
+            .into_iter()
+            .map(|string| AstNode::String(string))
+            .collect();
+        let value = AstNode::List(keys);
+        Ok(FunctionCallResultSuccess::Value(value))
     }
 }
