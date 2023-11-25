@@ -1,11 +1,9 @@
+use crate::functions::{FunctionCallResult, FunctionCallResultSuccess, NativeFunction};
 use std::{cell::RefCell, collections::BTreeSet, rc::Rc};
 
 use crate::read::AstNode;
 
-use super::{
-    Environment, EnvironmentEntry, EnvironmentEntryValue, EvalError, FunctionCallResult,
-    FunctionCallResultSuccess, NativeFunction, SharedEnvironment,
-};
+use super::{Environment, EnvironmentEntry, EnvironmentEntryValue, EvalError, SharedEnvironment};
 
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Clone, Copy)]
 #[repr(u8)]
@@ -31,7 +29,7 @@ pub struct Evaluator {
 }
 
 impl Evaluator {
-    fn eval_ast(&self, ast: AstNode, env: &SharedEnvironment) -> FunctionCallResult {
+    fn eval_ast_value(&self, ast: AstNode, env: &SharedEnvironment) -> FunctionCallResult {
         Ok(FunctionCallResultSuccess::Value(match ast {
             AstNode::List(_) => unreachable!(),
             AstNode::Int(num) => AstNode::Int(num),
@@ -68,7 +66,7 @@ impl Evaluator {
                     Ok(FunctionCallResultSuccess::Value(AstNode::List(empty)))
                 }
                 AstNode::List(mut list) => self.eval_funcall(list.remove(0), list, env),
-                any => self.eval_ast(any, &env),
+                any => self.eval_ast_value(any, &env),
             }?;
 
             match tailcall_result {

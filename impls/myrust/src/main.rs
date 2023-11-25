@@ -1,4 +1,6 @@
+mod environment;
 mod eval;
+mod functions;
 mod read;
 use eval::{new_base_environment, EvalError, Evaluator, SharedEnvironment};
 use read::{
