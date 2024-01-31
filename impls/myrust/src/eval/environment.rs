@@ -1,10 +1,10 @@
 use std::{cell::RefCell, collections::HashMap, fmt::Display, ops::Deref, rc::Rc};
 
 use super::NativeFunction;
-use crate::read::AstNode;
+use crate::read::{AstNode, AstNodeRef};
 
 pub enum EnvironmentEntryValue {
-    Value(AstNode),
+    Value(AstNodeRef),
     NativeFunction(Rc<dyn NativeFunction>),
 }
 
@@ -26,10 +26,10 @@ pub struct EnvironmentEntry {
     value: EnvironmentEntryValue,
 }
 impl EnvironmentEntry {
-    pub fn to_ast_node(self: Rc<Self>) -> AstNode {
+    pub fn to_ast_node(self: Rc<Self>) -> AstNodeRef {
         match &self.value {
             EnvironmentEntryValue::Value(node) => node.clone(),
-            EnvironmentEntryValue::NativeFunction(_) => AstNode::FunctionPtr(self.clone()),
+            EnvironmentEntryValue::NativeFunction(_) => AstNode::FunctionPtr(self.clone()).into(),
         }
     }
     pub fn value(&self) -> &EnvironmentEntryValue {

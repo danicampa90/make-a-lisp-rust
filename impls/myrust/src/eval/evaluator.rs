@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::BTreeSet, rc::Rc};
 
-use crate::read::AstNode;
+use crate::read::{AstNode, AstNodeRef};
 
 use super::{
     Environment, EnvironmentEntry, EnvironmentEntryValue, EvalError, FunctionCallResult,
@@ -31,45 +31,35 @@ pub struct Evaluator {
 }
 
 impl Evaluator {
-    fn eval_ast(&self, ast: AstNode, env: &SharedEnvironment) -> FunctionCallResult {
-        Ok(FunctionCallResultSuccess::Value(match ast {
-            AstNode::List(_) => unreachable!(),
-            AstNode::Int(num) => AstNode::Int(num),
-            AstNode::String(str) => AstNode::String(str),
-            AstNode::Bool(b) => AstNode::Bool(b),
-            AstNode::Nil => AstNode::Nil,
-            AstNode::UnresolvedSymbol(name) => env
-                .borrow()
-                .find(&name)
-                .ok_or(EvalError::SymbolNotFound(name))?
-                .to_ast_node(),
-            AstNode::FunctionPtr(fptr) => AstNode::FunctionPtr(fptr),
-            AstNode::Lambda(l) => AstNode::Lambda(l),
-            AstNode::Vector(content) => AstNode::Vector(Result::from_iter(
-                content.into_iter().map(|a| self.eval(a, env.clone())),
-            )?),
-            AstNode::Atom(rc) => AstNode::Atom(rc),
-            AstNode::HashMap(content) => {
-                let iter_kv = Result::from_iter(content.into_iter().map(
-                    |a| -> Result<(String, AstNode), EvalError> {
-                        Ok((a.0, self.eval(a.1, env.clone())?))
-                    },
-                ))?;
 
-                AstNode::HashMap(iter_kv)
-            }
-        }))
-    }
-
-    pub fn eval(&self, mut ast: AstNode, mut env: SharedEnvironment) -> Result<AstNode, EvalError> {
+    pub fn eval(&self, mut ast: AstNodeRef, mut env: SharedEnvironment) -> Result<AstNodeRef, EvalError> {
         loop {
-            let tailcall_result = match ast {
+            let tailcall_result = match &*ast {
                 AstNode::List(empty) if empty.len() == 0 => {
-                    Ok(FunctionCallResultSuccess::Value(AstNode::List(empty)))
+                    FunctionCallResultSuccess::Value(ast)
                 }
-                AstNode::List(mut list) => self.eval_funcall(list.remove(0), list, env),
+                AstNode::List(mut list) => self.eval_funcall(list[0], list, env),
+
+                AstNode::UnresolvedSymbol(name) => env
+                    .borrow()
+                    .find(&name)
+                    .ok_or(EvalError::SymbolNotFound(name.clone()))?
+                    .to_ast_node()?,
+                AstNode::Vector(content) => AstNode::Vector(Result::from_iter(
+                    content.into_iter().map(|a| self.eval(a.clone(), env.clone())),
+                )?),
+                AstNode::HashMap(content) => {
+                    let iter_kv = Result::from_iter(content.into_iter().map(
+                        |a| -> Result<(String, AstNode), EvalError> {
+                            Ok((a.0, self.eval(a.1, env.clone())?))
+                        },
+                    ))?;
+
+                    AstNode::HashMap(iter_kv)
+                }
+                _ => ast,
                 any => self.eval_ast(any, &env),
-            }?;
+            };
 
             match tailcall_result {
                 FunctionCallResultSuccess::Value(v) => return Ok(v),
@@ -83,8 +73,8 @@ impl Evaluator {
     }
     fn eval_funcall(
         &self,
-        func: AstNode,
-        params: Vec<AstNode>,
+        func: AstNodeRef,
+        params: Vec<AstNodeRef>,
         env: SharedEnvironment,
     ) -> FunctionCallResult {
         let func = self.eval(func, env.clone())?;

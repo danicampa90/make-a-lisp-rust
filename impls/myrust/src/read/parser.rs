@@ -1,4 +1,4 @@
-use super::AstNode;
+use super::{AstNode, AstNodeRef};
 use super::{LexToken, LexerIterator, LexingError};
 use std::collections::HashMap;
 use std::iter::Peekable;
@@ -27,7 +27,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn read_form(&mut self, eof_allowed: bool) -> Result<AstNode, ParsingError> {
+    pub fn read_form(&mut self, eof_allowed: bool) -> Result<AstNodeRef, ParsingError> {
         use super::LexToken::*;
 
         match self.peek_token() {
@@ -36,13 +36,13 @@ impl<'a> Parser<'a> {
                     self.get_token()?;
                     Ok(AstNode::List(
                         self.read_form_list(LexToken::RoundParenClose)?,
-                    ))
+                    ).into())
                 }
                 SquareParenOpen => {
                     self.get_token()?;
                     Ok(AstNode::Vector(
                         self.read_form_list(LexToken::SquareParenClose)?,
-                    ))
+                    ).into())
                 }
                 CurlyParenOpen => {
                     self.get_token()?;
@@ -51,37 +51,37 @@ impl<'a> Parser<'a> {
                 Tick => {
                     self.get_token()?;
                     Ok(AstNode::List(vec![
-                        AstNode::UnresolvedSymbol("quote".to_string()),
+                        AstNode::UnresolvedSymbol("quote".to_string()).into(),
                         self.read_form(false)?,
-                    ]))
+                    ]).into())
                 }
                 BackTick => {
                     self.get_token()?;
                     Ok(AstNode::List(vec![
-                        AstNode::UnresolvedSymbol("quasiquote".to_string()),
+                        AstNode::UnresolvedSymbol("quasiquote".to_string()).into(),
                         self.read_form(false)?,
-                    ]))
+                    ]).into())
                 }
                 Tilde => {
                     self.get_token()?;
                     Ok(AstNode::List(vec![
-                        AstNode::UnresolvedSymbol("unquote".to_string()),
+                        AstNode::UnresolvedSymbol("unquote".to_string()).into(),
                         self.read_form(false)?,
-                    ]))
+                    ]).into())
                 }
                 TildeAt => {
                     self.get_token()?;
                     Ok(AstNode::List(vec![
-                        AstNode::UnresolvedSymbol("splice-unquote".to_string()),
+                        AstNode::UnresolvedSymbol("splice-unquote".to_string()).into(),
                         self.read_form(false)?,
-                    ]))
+                    ]).into())
                 }
                 At => {
                     self.get_token()?;
                     Ok(AstNode::List(vec![
-                        AstNode::UnresolvedSymbol("deref".to_string()),
+                        AstNode::UnresolvedSymbol("deref".to_string()).into(),
                         self.read_form(false)?,
-                    ]))
+                    ]).into())
                 }
                 QuotedString(_) => self.read_atom(),
                 Comment(_) => {
@@ -110,7 +110,7 @@ impl<'a> Parser<'a> {
         res.map_err(|err| err.into())
     }
 
-    fn read_form_list(&mut self, until: LexToken) -> Result<Vec<AstNode>, ParsingError> {
+    fn read_form_list(&mut self, until: LexToken) -> Result<Vec<AstNodeRef>, ParsingError> {
         let mut result = vec![];
         while self.peek_token()? != until {
             result.push(self.read_form(false)?)
@@ -120,21 +120,21 @@ impl<'a> Parser<'a> {
 
         Ok(result)
     }
-    fn read_atom(&mut self) -> Result<AstNode, ParsingError> {
+    fn read_atom(&mut self) -> Result<AstNodeRef, ParsingError> {
         match self.get_token()? {
-            LexToken::QuotedString(str) => Ok(AstNode::String(str)),
+            LexToken::QuotedString(str) => Ok(AstNode::String(str).into()),
             LexToken::Name(name) => {
                 if let Ok(num) = name.parse() {
-                    Ok(AstNode::Int(num))
+                    Ok(AstNode::Int(num).into())
                 } else {
                     if name == "nil" {
-                        Ok(AstNode::Nil)
+                        Ok(AstNode::Nil.into())
                     } else if name == "true" {
-                        Ok(AstNode::Bool(true))
+                        Ok(AstNode::Bool(true).into())
                     } else if name == "false" {
-                        Ok(AstNode::Bool(false))
+                        Ok(AstNode::Bool(false).into())
                     } else {
-                        Ok(AstNode::UnresolvedSymbol(name))
+                        Ok(AstNode::UnresolvedSymbol(name).into())
                     }
                 }
             }
@@ -142,7 +142,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn read_hashmap(&mut self) -> Result<AstNode, ParsingError> {
+    fn read_hashmap(&mut self) -> Result<AstNodeRef, ParsingError> {
         let mut result = HashMap::new();
         while self.peek_token()? != LexToken::CurlyParenClose {
             let key_token = self.get_token()?;
@@ -157,6 +157,6 @@ impl<'a> Parser<'a> {
 
         self.get_token()?; // get the '}' token
 
-        return Ok(AstNode::HashMap(result));
+        return Ok(AstNode::HashMap(result).into());
     }
 }

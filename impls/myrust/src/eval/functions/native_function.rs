@@ -1,4 +1,4 @@
-use crate::read::AstNode;
+use crate::read::{AstNode, AstNodeRef};
 
 use crate::eval::{EvalError, Evaluator, SharedEnvironment};
 
@@ -17,7 +17,7 @@ impl TailCallData {
 }
 
 pub enum FunctionCallResultSuccess {
-    Value(AstNode),
+    Value(AstNodeRef),
     TailCall(TailCallData),
 }
 impl FunctionCallResultSuccess {

@@ -103,7 +103,6 @@
 
 (test "apply - test 1" (apply '+ 1 2 '()) 3 )
 (test "apply - test 2" (apply 'list 1 2 '(3 4) ) '(1 2 3 4) )
-;(test "apply - test 3" (apply vector '(1 2 3) ) '[1 2 3] )
 
 ; map defined in terms of apply
 (def! map (fn* (fn lst) (

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, ops::Deref, borrow::Borrow};
 
 use crate::eval::{EnvironmentEntry, EvalError, SharedEnvironment};
 
@@ -30,10 +30,10 @@ impl PartialEq for LambdaEntry {
 
 #[derive(Clone)]
 pub enum AstNode {
-    List(Vec<AstNode>),
-    Vector(Vec<AstNode>),
-    HashMap(HashMap<String, AstNode>),
-    Atom(Rc<RefCell<AstNode>>),
+    List(Vec<AstNodeRef>),
+    Vector(Vec<AstNodeRef>),
+    HashMap(HashMap<String, AstNodeRef>),
+    Atom(Rc<RefCell<AstNodeRef>>),
     String(String),
     Int(i64),
     Bool(bool),
@@ -75,7 +75,7 @@ impl AstNode {
             }),
         }
     }
-    pub fn try_unwrap_list(self) -> Result<Vec<AstNode>, EvalError> {
+    pub fn try_unwrap_list(self) -> Result<Vec<AstNodeRef>, EvalError> {
         match self {
             AstNode::List(i) => Ok(i),
             v => Err(EvalError::TypeError {
@@ -85,7 +85,7 @@ impl AstNode {
         }
     }
 
-    pub fn try_unwrap_list_or_vector(self) -> Result<Vec<AstNode>, EvalError> {
+    pub fn try_unwrap_list_or_vector(self) -> Result<Vec<AstNodeRef>, EvalError> {
         match self {
             AstNode::List(i) => Ok(i),
             AstNode::Vector(i) => Ok(i),
@@ -96,7 +96,7 @@ impl AstNode {
         }
     }
 
-    pub fn try_unwrap_vector(self) -> Result<Vec<AstNode>, EvalError> {
+    pub fn try_unwrap_vector(self) -> Result<Vec<AstNodeRef>, EvalError> {
         match self {
             AstNode::Vector(i) => Ok(i),
             v => Err(EvalError::TypeError {
@@ -105,7 +105,7 @@ impl AstNode {
             }),
         }
     }
-    pub fn try_unwrap_hashmap(self) -> Result<HashMap<String, AstNode>, EvalError> {
+    pub fn try_unwrap_hashmap(self) -> Result<HashMap<String, AstNodeRef>, EvalError> {
         match self {
             AstNode::HashMap(i) => Ok(i),
             v => Err(EvalError::TypeError {
@@ -114,7 +114,7 @@ impl AstNode {
             }),
         }
     }
-    pub fn try_unwrap_atom(self) -> Result<Rc<RefCell<AstNode>>, EvalError> {
+    pub fn try_unwrap_atom(self) -> Result<Rc<RefCell<AstNodeRef>>, EvalError> {
         match self {
             AstNode::Atom(i) => Ok(i),
             v => Err(EvalError::TypeError {
@@ -171,5 +171,34 @@ impl AstNode {
 
     pub fn create_keyword(name: &str) -> AstNode {
         return AstNode::String(Lexer::KEYWORD_PREFIX.to_string() + name);
+    }
+}
+
+
+pub struct AstNodeRef{node: Rc<AstNode>}
+
+impl Deref for AstNodeRef {
+    type Target = AstNode;
+
+    fn deref(&self) -> &Self::Target {
+        self.node.borrow()
+    }
+}
+impl Clone for AstNodeRef{
+    fn clone(&self) -> Self {
+        Self { node: self.node.clone() }
+    }
+}
+
+
+impl PartialEq for AstNodeRef{
+    fn eq(&self, other: &Self) -> bool {
+        self.node == other.node
+    }
+}
+
+impl From<AstNode> for AstNodeRef {
+    fn from(value: AstNode) -> Self {
+        return AstNodeRef { node: Rc::new(value) }
     }
 }
